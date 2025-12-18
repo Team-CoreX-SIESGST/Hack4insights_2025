@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import connectDB from "./db/index.js";
-import {app} from './app.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -13,6 +12,8 @@ const envPath = join(__dirname, '..', '.env');
 dotenv.config({
     path: envPath
 })
+
+import { app } from './app.js'
 
 // Check if MONGODB_URL is set
 if (!process.env.MONGODB_URL) {
@@ -24,11 +25,11 @@ if (!process.env.MONGODB_URL) {
 
 
 connectDB()
-.then(() => {
-    app.listen(process.env.SERVER_PORT || 8000, () => {
-        console.log(`⚙️ Server is running at port : ${process.env.SERVER_PORT}`);
+    .then(() => {
+        app.listen(process.env.SERVER_PORT || 8000, () => {
+            console.log(`⚙️ Server is running at port : ${process.env.SERVER_PORT}`);
+        })
     })
-})
-.catch((err) => {
-    console.log("MONGO db connection failed !!! ", err);
-})
+    .catch((err) => {
+        console.log("MONGO db connection failed !!! ", err);
+    })

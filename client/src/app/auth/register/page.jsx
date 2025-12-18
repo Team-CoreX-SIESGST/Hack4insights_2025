@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import GlowButton from '../../../components/GlowButton';
+import GlowButton from '../../components/GlowButton';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -25,10 +25,10 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Basic validation
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
       return;
     }
 
@@ -36,7 +36,7 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8001/api/users/register', {
+      const response = await fetch('http://localhost:8000/api/users/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,37 +47,21 @@ export default function RegisterPage() {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!data.status) {
+        // Handle specific field errors
+        if (data.data?.email) {
+          throw new Error(data.data.email);
+        }
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Auto-login after successful registration
-      const loginResponse = await fetch('http://localhost:8001/api/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        }),
-        credentials: 'include'
-      });
-
-      const loginData = await loginResponse.json();
-
-      if (!loginResponse.ok) {
-        // If auto-login fails, redirect to login page
-        router.push('/auth/login');
-        return;
-      }
-
+      // Registration successful - token is already in the response
       // Store the token and user data
-      localStorage.setItem('token', loginData.token);
-      localStorage.setItem('user', JSON.stringify(loginData.user));
-      
-      // Redirect to dashboard or home
-      router.push('/chat');
+      localStorage.setItem('token', data.data.token);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+
+      // Redirect to dashboard
+      router.push('/dashboard');
     } catch (err) {
       setError(err.message || 'An error occurred during registration');
     } finally {
@@ -149,14 +133,14 @@ export default function RegisterPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                minLength={8}
+                minLength={6}
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
                 placeholder="••••••••"
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                Password must be at least 8 characters long
+                Password must be at least 6 characters long
               </p>
             </div>
           </div>

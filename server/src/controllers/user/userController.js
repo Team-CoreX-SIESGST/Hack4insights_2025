@@ -1,6 +1,6 @@
 // In userController.js
 import User from "../../models/user.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { asyncHandler, statusType, sendResponse } from "../../utils/index.js";
 
@@ -10,10 +10,10 @@ const generateAuthToken = (user) => {
         throw new Error("JWT_SECRET is not defined in environment variables");
     }
     return jwt.sign(
-        { 
+        {
             user_id: user._id,
             email: user.email,
-            role: user.role || 'user' 
+            role: user.role || 'user'
         },
         process.env.JWT_SECRET,
         { expiresIn: "30d" }
@@ -202,7 +202,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     try {
         // Clear the token cookie
         res.clearCookie('token');
-        
+
         return sendResponse(
             res,
             true,
@@ -227,7 +227,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     try {
         // The user is already attached to the request by the auth middleware
         const user = req.user;
-        
+
         if (!user) {
             return sendResponse(
                 res,

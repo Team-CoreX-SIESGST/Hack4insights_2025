@@ -1,25 +1,35 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
-class GeminiService {
+class GroqService {
     constructor() {
-        if (!process.env.GEMINI_API_KEY) {
-            throw new Error("GEMINI_API_KEY is not defined in environment variables");
+        if (!process.env.GROQ_API_KEY) {
+            throw new Error("GROQ_API_KEY is not defined in environment variables");
         }
-        this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        this.plannerModel = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        this.researcherModel = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        this.groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        // Using llama-3.3-70b-versatile as the default model (free tier)
+        this.defaultModel = "llama-3.3-70b-versatile";
     }
 
     async callPlanner(userQuery, previousIssues = []) {
         try {
             const prompt = this.buildPlannerPrompt(userQuery, previousIssues);
-            const result = await this.plannerModel.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            const chatCompletion = await this.groq.chat.completions.create({
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt,
+                    },
+                ],
+                model: this.defaultModel,
+                temperature: 0.7,
+                max_tokens: 2048,
+            });
+
+            const text = chatCompletion.choices[0]?.message?.content || "";
 
             return {
                 response: text,
-                tokens: this.estimateTokens(text)
+                tokens: chatCompletion.usage?.total_tokens || this.estimateTokens(text)
             };
         } catch (error) {
             console.error("Planner API Error:", error);
@@ -30,15 +40,26 @@ class GeminiService {
     async callResearcher(userQuery, plannerResponse) {
         try {
             const prompt = this.buildResearcherPrompt(userQuery, plannerResponse);
-            const result = await this.researcherModel.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            const chatCompletion = await this.groq.chat.completions.create({
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt,
+                    },
+                ],
+                model: this.defaultModel,
+                temperature: 0.5,
+                max_tokens: 1024,
+                response_format: { type: "json_object" },
+            });
+
+            const text = chatCompletion.choices[0]?.message?.content || "";
 
             // Parse JSON response
             const parsed = this.parseResearcherResponse(text);
             return {
                 ...parsed,
-                tokens: this.estimateTokens(text)
+                tokens: chatCompletion.usage?.total_tokens || this.estimateTokens(text)
             };
         } catch (error) {
             console.error("Researcher API Error:", error);
@@ -115,14 +136,24 @@ Answer:`;
 
             while (retries < maxRetries) {
                 try {
-                    const result = await this.plannerModel.generateContent(prompt);
-                    const response = await result.response;
-                    return response.text();
+                    const chatCompletion = await this.groq.chat.completions.create({
+                        messages: [
+                            {
+                                role: "user",
+                                content: prompt,
+                            },
+                        ],
+                        model: this.defaultModel,
+                        temperature: 0.7,
+                        max_tokens: 1024,
+                    });
+
+                    return chatCompletion.choices[0]?.message?.content || "No response generated.";
                 } catch (error) {
-                    if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
+                    if (error.status === 429 || error.message.includes('429') || error.message.includes('Too Many Requests')) {
                         retries++;
                         const delay = retries * 5000; // 5s, 10s, 15s
-                        console.warn(`⚠️ Gemini Rate Limit (429). Retrying attempt ${retries}/${maxRetries} in ${delay / 1000}s...`);
+                        console.warn(`⚠️ Groq Rate Limit (429). Retrying attempt ${retries}/${maxRetries} in ${delay / 1000}s...`);
                         await new Promise(resolve => setTimeout(resolve, delay));
                         continue;
                     }
@@ -142,4 +173,4 @@ Answer:`;
     }
 }
 
-export default new GeminiService();
+export default new GroqService();

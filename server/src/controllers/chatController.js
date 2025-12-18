@@ -1,7 +1,7 @@
 import Session from "../models/session.js";
 import Message from "../models/message.js";
 import IterationLog from "../models/iterationLog.js";
-import geminiService from "../services/geminiService.js";
+import groqService from "../services/groqService.js";
 import { asyncHandler, statusType, sendResponse } from "../utils/index.js";
 import { EventEmitter } from "events";
 
@@ -215,10 +215,10 @@ const sendMessage = asyncHandler(async (req, res) => {
 
             // Call Planner
             const startTime = Date.now();
-            const plannerResult = await geminiService.callPlanner(content, allIssues);
+            const plannerResult = await groqService.callPlanner(content, allIssues);
 
             // Call Researcher
-            const researcherResult = await geminiService.callResearcher(
+            const researcherResult = await groqService.callResearcher(
                 content,
                 plannerResult.response
             );

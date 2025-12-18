@@ -34,7 +34,7 @@ const messageSchema = new mongoose.Schema(
         },
         llmModel: {
             type: String,
-            default: "gemini-pro"
+            default: "llama-3.3-70b-versatile"
         }
     },
     {

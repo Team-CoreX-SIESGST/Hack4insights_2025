@@ -7,6 +7,7 @@ import RevenueSection from '../../components/dashboard/sections/Revenue';
 import RefundSection from '../../components/dashboard/sections/Refund';
 import ProductsSection from '../../components/dashboard/sections/Products';
 import LoadingState from '../../components/dashboard/LoadingState';
+import AskAI from '../../components/dashboard/sections/AskAI';
 import useDashboardData from '@/hooks/useDashBoardData';
 
 const Index = () => {
@@ -72,6 +73,8 @@ const Index = () => {
             refundsByProduct={refundsByProduct}
           />
         );
+      case 'ask_ai':
+        return <AskAI />;
       case 'traffic':
       case 'conversion':
         return (

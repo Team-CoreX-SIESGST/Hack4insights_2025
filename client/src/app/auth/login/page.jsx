@@ -28,7 +28,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8001/api/users/login', {
+      const response = await fetch('http://localhost:8000/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,16 +39,23 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!data.status) {
+        // Handle specific field errors
+        if (data.data?.email) {
+          throw new Error(data.data.email);
+        }
+        if (data.data?.password) {
+          throw new Error(data.data.password);
+        }
         throw new Error(data.message || 'Login failed');
       }
 
       // Store the token and user data
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
+      localStorage.setItem('token', data.data.token);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+
       // Redirect to dashboard or home
-      router.push('/chat');
+      router.push('/dashboard');
     } catch (err) {
       setError(err.message || 'An error occurred during login');
     } finally {
