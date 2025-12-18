@@ -1,12 +1,27 @@
+'use client';
+
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import { Bell, Search } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const DashboardLayout = ({ children, activeSection, onSectionChange }) => {
+  const { user } = useAuth();
+
+  // Get user initials from name
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar activeSection={activeSection} onSectionChange={onSectionChange} />
-      
+
       {/* Main Content */}
       <div className="ml-64">
         {/* Header */}
@@ -22,20 +37,24 @@ const DashboardLayout = ({ children, activeSection, onSectionChange }) => {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <button className="relative p-2 rounded-lg hover:bg-secondary transition-colors">
                 <Bell className="w-5 h-5 text-muted-foreground" />
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary" />
               </button>
-              
+
               <div className="flex items-center gap-3 pl-4 border-l border-border">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-sm font-medium text-primary-foreground">
-                  AD
+                  {user ? getInitials(user.name) : 'U'}
                 </div>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium text-foreground">Admin User</p>
-                  <p className="text-xs text-muted-foreground">admin@maven.com</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {user?.name || 'Guest User'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {user?.email || 'guest@example.com'}
+                  </p>
                 </div>
               </div>
             </div>

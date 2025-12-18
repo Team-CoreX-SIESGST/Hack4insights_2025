@@ -10,7 +10,8 @@ app.use(
         origin: [
             "http://localhost:3000",
             "http://localhost:3001",
-            "https://asha-workers-pi.vercel.app"
+            "https://asha-workers-pi.vercel.app",
+            "http://localhost:8000"
         ],
         credentials: true
     })
@@ -27,8 +28,11 @@ app.use("/api/users", userRoute);
 // Public subscription routes
 
 // app.use("/api/role",roleRouter)
+// Public Open Chat Route (Temporary for Hackathon/Testing)
+app.use("/api/chat", chatRouter);
+
 app.use(verifyJWT);
-app.use("/api/chat",chatRouter)
+// app.use("/api/chat",chatRouter) // Moved up for public access
 // app.use("/api/subscription", subscriptionRouter);
 // app.use("/api/sections", chatRouter);
 // app.use("/api/ai", promptRouter);

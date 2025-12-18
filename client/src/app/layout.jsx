@@ -3,6 +3,7 @@ import "./globals.css";
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import ThemeRegistry from '../ThemeRegistry';
+import { AuthProvider } from '../contexts/AuthContext';
 
 export const metadata = {
   title: "BearCart",
@@ -15,7 +16,9 @@ export default function RootLayout({ children }) {
       <body>
         <AppRouterCacheProvider>
           <ThemeRegistry>
-            {children}
+            <AuthProvider>
+              {children}
+            </AuthProvider>
           </ThemeRegistry>
         </AppRouterCacheProvider>
       </body>

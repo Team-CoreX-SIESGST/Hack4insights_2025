@@ -9,6 +9,7 @@ import ProductsSection from '../../components/dashboard/sections/Products';
 import TrafficSection from '../../components/dashboard/sections/Traffic';
 import ConversionSection from '../../components/dashboard/sections/Conversion';
 import LoadingState from '../../components/dashboard/LoadingState';
+import AskAI from '../../components/dashboard/sections/AskAI';
 import useDashboardData from '@/hooks/useDashBoardData';
 
 const Index = () => {
@@ -78,6 +79,8 @@ const Index = () => {
             refundsByProduct={refundsByProduct}
           />
         );
+      case 'ask_ai':
+        return <AskAI />;
       case 'traffic':
         return (
           <TrafficSection
