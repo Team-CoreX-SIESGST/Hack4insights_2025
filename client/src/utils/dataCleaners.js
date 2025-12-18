@@ -237,3 +237,137 @@ export const safeNumber = (value, fallback = 0) => {
     }
     return value.toLocaleString();
   };
+
+  // Add these cleaning functions to your existing dataCleaners.js
+
+export const cleanSessionsData = (sessionsRaw) => {
+  return sessionsRaw.map(session => ({
+    website_session_id: parseInt(session.website_session_id) || 0,
+    created_at: session.created_at || '',
+    created_at_date: session.created_at_date || '',
+    created_at_time: session.created_at_time || '',
+    user_id: parseInt(session.user_id) || 0,
+    is_repeat_session: session.is_repeat_session || '0',
+    utm_source: session.utm_source || 'direct',
+    utm_campaign: session.utm_campaign || '',
+    utm_content: session.utm_content || '',
+    device_type: session.device_type || 'desktop',
+    http_referer: session.http_referer || ''
+  }));
+};
+
+export const cleanPageviewsData = (pageviewsRaw) => {
+  return pageviewsRaw.map(pageview => ({
+    website_pageview_id: parseInt(pageview.website_pageview_id) || 0,
+    created_at: pageview.created_at || '',
+    created_at_date: pageview.created_at_date || '',
+    created_at_time: pageview.created_at_time || '',
+    website_session_id: parseInt(pageview.website_session_id) || 0,
+    pageview_url: pageview.pageview_url || ''
+  }));
+};
+
+// New helper functions for session metrics
+export const calculateSessionMetrics = (sessions) => {
+  const totalSessions = sessions.length;
+  const repeatSessions = sessions.filter(s => s.is_repeat_session === "1").length;
+  const mobileSessions = sessions.filter(s => s.device_type === "mobile").length;
+  const desktopSessions = sessions.filter(s => s.device_type === "desktop").length;
+  
+  return {
+    totalSessions,
+    repeatSessions,
+    mobileSessions,
+    desktopSessions,
+    repeatSessionRate: totalSessions > 0 ? (repeatSessions / totalSessions) * 100 : 0,
+    mobileSessionRate: totalSessions > 0 ? (mobileSessions / totalSessions) * 100 : 0,
+    desktopSessionRate: totalSessions > 0 ? (desktopSessions / totalSessions) * 100 : 0
+  };
+};
+
+export const calculateConversionFunnel = (sessions, pageviews, orders) => {
+  const totalSessions = sessions.length;
+  
+  const sessionsWithPageviews = sessions.filter(session => 
+    pageviews.some(p => p.website_session_id === session.website_session_id)
+  ).length;
+  
+  const sessionsWithProductViews = sessions.filter(session => 
+    pageviews.some(p => 
+      p.website_session_id === session.website_session_id && 
+      p.pageview_url.includes('/products')
+    )
+  ).length;
+  
+  const sessionsWithCartViews = sessions.filter(session => 
+    pageviews.some(p => 
+      p.website_session_id === session.website_session_id && 
+      p.pageview_url.includes('/cart')
+    )
+  ).length;
+  
+  const sessionsWithCheckout = sessions.filter(session => 
+    pageviews.some(p => 
+      p.website_session_id === session.website_session_id && 
+      p.pageview_url.includes('/checkout')
+    )
+  ).length;
+  
+  return {
+    totalSessions,
+    sessionsWithPageviews,
+    sessionsWithProductViews,
+    sessionsWithCartViews,
+    sessionsWithCheckout,
+    totalOrders: orders.length,
+    sessionToOrderRate: totalSessions > 0 ? (orders.length / totalSessions) * 100 : 0,
+    cartToOrderRate: sessionsWithCartViews > 0 ? (orders.length / sessionsWithCartViews) * 100 : 0
+  };
+};
+
+export const calculateChannelPerformance = (sessions, orders) => {
+  const channelData = sessions.reduce((acc, session) => {
+    const source = session.utm_source || 'direct';
+    const campaign = session.utm_campaign || 'none';
+    const key = `${source}|${campaign}`;
+    
+    if (!acc[key]) {
+      acc[key] = {
+        source,
+        campaign,
+        sessions: 0,
+        orders: 0,
+        revenue: 0
+      };
+    }
+    acc[key].sessions++;
+    
+    // Find orders for this session
+    const sessionOrders = orders.filter(o => o.website_session_id === session.website_session_id);
+    acc[key].orders += sessionOrders.length;
+    acc[key].revenue += sessionOrders.reduce((sum, o) => sum + parseFloat(o.price_usd || 0), 0);
+    
+    return acc;
+  }, {});
+  
+  return Object.values(channelData).map(channel => ({
+    ...channel,
+    conversionRate: channel.sessions > 0 ? (channel.orders / channel.sessions) * 100 : 0,
+    avgOrderValue: channel.orders > 0 ? channel.revenue / channel.orders : 0
+  }));
+};
+
+// Helper function for device conversion rates
+export const calculateDeviceConversion = (deviceType, sessions, orders) => {
+  const deviceSessions = sessions.filter(s => s.device_type === deviceType);
+  const deviceOrders = orders.filter(order => {
+    const session = sessions.find(s => s.website_session_id === order.website_session_id);
+    return session?.device_type === deviceType;
+  });
+  
+  return {
+    sessions: deviceSessions.length,
+    orders: deviceOrders.length,
+    conversionRate: deviceSessions.length > 0 ? (deviceOrders.length / deviceSessions.length) * 100 : 0
+  };
+};
