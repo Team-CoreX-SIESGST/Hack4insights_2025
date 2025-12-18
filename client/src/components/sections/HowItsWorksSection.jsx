@@ -1,27 +1,21 @@
 import { motion } from 'framer-motion';
-import { Box, Container, Typography, Grid, Card, CardContent } from '@mui/material';
-import {
-  Storage,
-  Memory,
-  ShowChart,
-  Rocket,
-} from '@mui/icons-material';
+import { Database, Cpu, LineChart, Rocket } from 'lucide-react';
 
 const steps = [
   {
-    icon: Storage,
+    icon: Database,
     step: '01',
     title: 'Connect Your Data',
     description: 'Seamlessly integrate with 100+ data sources including databases, APIs, and cloud services.',
   },
   {
-    icon: Memory,
+    icon: Cpu,
     step: '02',
     title: 'AI Processing',
     description: 'Our advanced AI analyzes your data, identifying patterns and generating actionable insights.',
   },
   {
-    icon: ShowChart,
+    icon: LineChart,
     step: '03',
     title: 'Visualize Insights',
     description: 'Beautiful dashboards and reports that make complex data easy to understand.',
@@ -36,168 +30,57 @@ const steps = [
 
 const HowItWorksSection = () => {
   return (
-    <Box
-      component="section"
-      sx={{
-        position: 'relative',
-        py: { xs: 12, md: 16 },
-      }}
-    >
-      <Container maxWidth="lg" sx={{ px: { xs: 3, sm: 6 } }}>
-        <Box
-          component={motion.div}
+    <section className="relative py-24 md:py-32">
+      <div className="container mx-auto px-6">
+        <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          sx={{ textAlign: 'center', mb: 8 }}
+          className="text-center mb-16"
         >
-          <Typography
-            variant="h2"
-            sx={{
-              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-              fontWeight: 700,
-              mb: 2,
-              color: '#ffffff',
-            }}
-          >
+          <h2 className="section-title mb-4">
             How It{' '}
-            <Box
-              component="span"
-              sx={{
-                background: 'linear-gradient(135deg, #603FEF 0%, #7D5FF3 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              Works
-            </Box>
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{
-              fontSize: { xs: '1rem', md: '1.125rem' },
-              color: 'rgba(255, 255, 255, 0.7)',
-              maxWidth: '800px',
-              mx: 'auto',
-              lineHeight: 1.6,
-            }}
-          >
+            <span className="gradient-text">Works</span>
+          </h2>
+          <p className="section-subtitle mx-auto">
             Get started in minutes with our simple four-step process.
-          </Typography>
-        </Box>
+          </p>
+        </motion.div>
 
-        <Box sx={{ position: 'relative' }}>
-          {/* Connecting Line - Desktop Only */}
-          <Box
-            sx={{
-              display: { xs: 'none', lg: 'block' },
-              position: 'absolute',
-              top: '50%',
-              left: 0,
-              right: 0,
-              height: '1px',
-              background: 'linear-gradient(to right, transparent, rgba(96, 63, 239, 0.3), transparent)',
-              transform: 'translateY(-50%)',
-            }}
-          />
-
-          <Grid container spacing={4}>
-            {steps.map((step, index) => {
-              const IconComponent = step.icon;
-              return (
-                <Grid item xs={12} sm={6} lg={3} key={index}>
-                  <Box
-                    component={motion.div}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: index * 0.15 }}
-                    sx={{ position: 'relative', height: '100%' }}
-                  >
-                    <Card
-                      sx={{
-                        height: '100%',
-                        backgroundColor: 'rgba(10, 10, 10, 0.6)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(96, 63, 239, 0.2)',
-                        borderRadius: 2,
-                        position: 'relative',
-                        zIndex: 10,
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          backgroundColor: 'rgba(10, 10, 10, 0.8)',
-                          borderColor: 'rgba(96, 63, 239, 0.5)',
-                          transform: 'translateY(-4px)',
-                          boxShadow: '0 12px 40px rgba(96, 63, 239, 0.2)',
-                        },
-                      }}
-                    >
-                      <CardContent sx={{ p: 4 }}>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            mb: 3,
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: 56,
-                              height: 56,
-                              borderRadius: 1.5,
-                              backgroundColor: 'rgba(96, 63, 239, 0.1)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <IconComponent sx={{ fontSize: 28, color: '#603FEF' }} />
-                          </Box>
-                          <Typography
-                            sx={{
-                              fontSize: '2.5rem',
-                              fontWeight: 700,
-                              color: 'rgba(96, 63, 239, 0.2)',
-                            }}
-                          >
-                            {step.step}
-                          </Typography>
-                        </Box>
-
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontSize: '1.25rem',
-                            fontWeight: 600,
-                            mb: 1.5,
-                            color: '#ffffff',
-                          }}
-                        >
-                          {step.title}
-                        </Typography>
-
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            lineHeight: 1.6,
-                          }}
-                        >
-                          {step.description}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Box>
-                </Grid>
-              );
-            })}
-          </Grid>
-        </Box>
-      </Container>
-    </Box>
+        <div className="relative">
+          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent -translate-y-1/2" />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {steps.map((step, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.15 }}
+                className="relative"
+              >
+                <div className="glass-card p-8 h-full relative z-10">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <step.icon className="w-7 h-7 text-primary" />
+                    </div>
+                    <span className="text-4xl font-bold text-primary/20">{step.step}</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
 
