@@ -15,6 +15,7 @@ import {
   ListItem,
   Divider,
 } from '@mui/material';
+import { Sparkles, Menu, X } from 'lucide-react';
 import { AutoAwesome, Menu as MenuIcon, Close } from '@mui/icons-material';
 
 const navLinks = [
@@ -28,238 +29,82 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Box
-      component={motion.header}
+    <motion.header
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      sx={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1300,
-      }}
+      className="fixed top-0 left-0 right-0 z-50"
     >
-      <Box sx={{ mx: 2, mt: 2 }}>
-        <AppBar
-          position="static"
-          sx={{
-            backgroundColor: 'rgba(10, 10, 10, 0.8)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(96, 63, 239, 0.2)',
-            borderRadius: 2,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            maxWidth: '1400px',
-            mx: 'auto',
-          }}
-        >
-          <Toolbar
-            sx={{
-              justifyContent: 'space-between',
-              px: { xs: 2, sm: 3 },
-              py: 1,
-            }}
-          >
-            {/* Logo */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 1.5,
-                  backgroundColor: 'rgba(96, 63, 239, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <AutoAwesome sx={{ fontSize: 20, color: '#603FEF' }} />
-              </Box>
-              <Box
-                component="span"
-                sx={{
-                  fontSize: '1.25rem',
-                  fontWeight: 700,
-                  color: '#ffffff',
-                }}
-              >
-                Nexus
-              </Box>
-            </Box>
+      <div className="mx-4 mt-4">
+        <nav className="glass-card px-6 py-4 max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary" />
+              </div>
+              <span className="text-xl font-bold">BearCart</span>
+            </div>
 
-            {/* Desktop Navigation */}
-            <Box
-              sx={{
-                display: { xs: 'none', md: 'flex' },
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
+            <div className="hidden md:flex items-center gap-8">
               {navLinks.map((link) => (
-                <Link
+                <a
                   key={link.label}
                   href={link.href}
-                  underline="none"
-                  sx={{
-                    fontSize: '0.875rem',
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    transition: 'color 0.3s ease',
-                    '&:hover': {
-                      color: '#ffffff',
-                    },
-                  }}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {link.label}
-                </Link>
+                </a>
               ))}
-            </Box>
+            </div>
 
-            {/* Desktop Buttons */}
-            <Box
-              sx={{
-                display: { xs: 'none', md: 'flex' },
-                alignItems: 'center',
-                gap: 2,
-              }}
-            >
-              <Button
-                sx={{
-                  fontSize: '0.875rem',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  textTransform: 'none',
-                  px: 2,
-                  py: 1,
-                  transition: 'color 0.3s ease',
-                  '&:hover': {
-                    color: '#ffffff',
-                    backgroundColor: 'transparent',
-                  },
-                }}
-              >
+            <div className="hidden md:flex items-center gap-4">
+              <button className="text-sm text-muted-foreground hover:text-foreground transition-colors px-4 py-2">
                 Sign In
-              </Button>
-              <Button
-                variant="contained"
-                sx={{
-                  fontSize: '0.875rem',
-                  background: 'linear-gradient(135deg, #603FEF 0%, #7D5FF3 100%)',
-                  color: '#ffffff',
-                  px: 3,
-                  py: 1,
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  boxShadow: '0 0 20px rgba(96, 63, 239, 0.5)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #4A2FBD 0%, #603FEF 100%)',
-                    boxShadow: '0 0 30px rgba(96, 63, 239, 0.7)',
-                    transform: 'translateY(-2px)',
-                  },
-                }}
-              >
+              </button>
+              <button className="btn-primary-glow text-sm px-6 py-2">
                 Get Started
-              </Button>
-            </Box>
+              </button>
+            </div>
 
-            {/* Mobile Menu Button */}
-            <IconButton
-              sx={{
-                display: { xs: 'flex', md: 'none' },
-                color: '#ffffff',
-                p: 1,
-              }}
+            <button 
+              className="md:hidden p-2"
               onClick={() => setIsOpen(!isOpen)}
             >
-              {isOpen ? <Close /> : <MenuIcon />}
-            </IconButton>
-          </Toolbar>
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
 
-          {/* Mobile Menu */}
-          <AnimatePresence>
-            {isOpen && (
-              <Box
-                component={motion.div}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                sx={{
-                  display: { xs: 'block', md: 'none' },
-                  overflow: 'hidden',
-                }}
-              >
-                <Box sx={{ px: 3, pt: 3, pb: 2 }}>
-                  <List sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 0 }}>
-                    {navLinks.map((link) => (
-                      <ListItem key={link.label} sx={{ p: 0 }}>
-                        <Link
-                          href={link.href}
-                          underline="none"
-                          sx={{
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            py: 1,
-                            width: '100%',
-                            transition: 'color 0.3s ease',
-                            '&:hover': {
-                              color: '#ffffff',
-                            },
-                          }}
-                        >
-                          {link.label}
-                        </Link>
-                      </ListItem>
-                    ))}
-                  </List>
-
-                  <Divider
-                    sx={{
-                      my: 2,
-                      borderColor: 'rgba(96, 63, 239, 0.2)',
-                    }}
-                  />
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    <Button
-                      fullWidth
-                      sx={{
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        textTransform: 'none',
-                        py: 1.5,
-                        justifyContent: 'flex-start',
-                        '&:hover': {
-                          color: '#ffffff',
-                          backgroundColor: 'transparent',
-                        },
-                      }}
-                    >
-                      Sign In
-                    </Button>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      sx={{
-                        fontSize: '0.875rem',
-                        background: 'linear-gradient(135deg, #603FEF 0%, #7D5FF3 100%)',
-                        color: '#ffffff',
-                        py: 1.5,
-                        textTransform: 'none',
-                        borderRadius: 2,
-                        boxShadow: '0 0 20px rgba(96, 63, 239, 0.5)',
-                        '&:hover': {
-                          background: 'linear-gradient(135deg, #4A2FBD 0%, #603FEF 100%)',
-                        },
-                      }}
-                    >
-                      Get Started
-                    </Button>
-                  </Box>
-                </Box>
-              </Box>
-            )}
-          </AnimatePresence>
-        </AppBar>
-      </Box>
-    </Box>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden pt-6 pb-2"
+            >
+              <div className="flex flex-col gap-4">
+                {navLinks.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors py-2"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+                <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                  <button className="text-muted-foreground hover:text-foreground transition-colors py-2 text-left">
+                    Sign In
+                  </button>
+                  <button className="btn-primary-glow text-sm py-3">
+                    Get Started
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </nav>
+      </div>
+    </motion.header>
   );
 };
 

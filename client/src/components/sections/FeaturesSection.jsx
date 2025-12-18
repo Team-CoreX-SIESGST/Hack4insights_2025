@@ -77,165 +77,61 @@ const FeaturesSection = () => {
   }, []);
 
   return (
-    <Box
-      component="section"
-      sx={{
-        position: 'relative',
-        py: { xs: 12, md: 16 },
-        overflow: 'hidden',
-      }}
-    >
+    <section className="relative py-24 md:py-32 overflow-hidden">
       {/* UnicornStudio Background */}
-      <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          overflow: 'hidden',
-        }}
-      >
-        <Box
-          data-us-project="TvsX3gOpieWTPMVGNpub"
-          sx={{
-            width: '100%',
-            height: '100%',
-            minWidth: '100%',
-            minHeight: '100%',
-          }}
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
+        <div 
+          data-us-project="TvsX3gOpieWTPMVGNpub" 
+          className="w-full h-full"
+          style={{ minWidth: '100%', minHeight: '100%' }}
         />
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 1))',
-          }}
-        />
-      </Box>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+      </div>
 
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 10, px: { xs: 3, sm: 6 } }}>
-        <Box
-          component={motion.div}
+      <div className="container mx-auto px-6 relative z-10">
+        <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          sx={{ textAlign: 'center', mb: 8 }}
+          className="text-center mb-16"
         >
-          <Typography
-            variant="h2"
-            sx={{
-              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-              fontWeight: 700,
-              mb: 2,
-              color: '#ffffff',
-            }}
-          >
+          <h2 className="section-title mb-4">
             Powerful Features for{' '}
-            <Box
-              component="span"
-              sx={{
-                background: 'linear-gradient(135deg, #603FEF 0%, #7D5FF3 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              Modern Teams
-            </Box>
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{
-              fontSize: { xs: '1rem', md: '1.125rem' },
-              color: 'rgba(255, 255, 255, 0.7)',
-              maxWidth: '800px',
-              mx: 'auto',
-              lineHeight: 1.6,
-            }}
-          >
+            <span className="gradient-text">Modern Teams</span>
+          </h2>
+          <p className="section-subtitle mx-auto">
             Everything you need to turn data into actionable insights and drive business growth.
-          </Typography>
-        </Box>
+          </p>
+        </motion.div>
 
-        <Grid
-          container
-          spacing={3}
-          component={motion.div}
+        <motion.div 
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
-          {features.map((feature, index) => {
-            const IconComponent = feature.icon;
-            return (
-              <Grid item xs={12} sm={6} lg={3} key={index}>
-                <Card
-                  component={motion.div}
-                  variants={itemVariants}
-                  sx={{
-                    height: '100%',
-                    backgroundColor: 'rgba(10, 10, 10, 0.6)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(96, 63, 239, 0.2)',
-                    borderRadius: 2,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      backgroundColor: 'rgba(10, 10, 10, 0.8)',
-                      borderColor: 'rgba(96, 63, 239, 0.5)',
-                      transform: 'translateY(-4px)',
-                      boxShadow: '0 12px 40px rgba(96, 63, 239, 0.2)',
-                    },
-                  }}
-                >
-                  <CardContent sx={{ p: 4 }}>
-                    <Box
-                      sx={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 1.5,
-                        backgroundColor: 'rgba(96, 63, 239, 0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: 3,
-                        transition: 'background-color 0.3s ease',
-                        '.MuiCard-root:hover &': {
-                          backgroundColor: 'rgba(96, 63, 239, 0.2)',
-                        },
-                      }}
-                    >
-                      <IconComponent sx={{ fontSize: 28, color: '#603FEF' }} />
-                    </Box>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontSize: '1.25rem',
-                        fontWeight: 600,
-                        mb: 1.5,
-                        color: '#ffffff',
-                      }}
-                    >
-                      {feature.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {feature.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
-        </Grid>
-      </Container>
-    </Box>
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              variants={itemVariants}
+              className="glass-card-hover p-8 group"
+            >
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors duration-300">
+                <feature.icon className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-foreground">
+                {feature.title}
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {feature.description}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
   );
 };
 
