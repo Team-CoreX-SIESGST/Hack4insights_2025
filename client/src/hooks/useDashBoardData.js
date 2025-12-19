@@ -148,8 +148,10 @@ const useDashboardData = (activeSection = "overview") => {
 
       let orders, orderItems, refunds, products, sessions, pageviews;
 
-      if (activeSection === "traffic") {
-        // For traffic section, filter sessions by date
+      if (activeSection === "traffic" || activeSection === "conversion") {
+        // For traffic and conversion sections, filter sessions by date
+        // This ensures we get ALL sessions (both converting and non-converting)
+        // which is necessary for accurate conversion rate calculations
         const filteredSessions = filterDataByDateRange(
           preSortedSessionsWithDate,
           dateRange.startDate,
