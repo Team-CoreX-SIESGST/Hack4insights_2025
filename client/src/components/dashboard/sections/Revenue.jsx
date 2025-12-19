@@ -1,31 +1,72 @@
-import { DollarSign, Package, TrendingUp, BarChart3 } from 'lucide-react';
-import KpiCard from '../KpiCard';
-import RevenueChart from '../charts/RevenueChart';
-import OrdersChart from '../charts/OrdersChart';
-import ProductPieChart from '../charts/ProductPieChart';
-import ChartInsight from '../ChatInsight';
-import AIRecommendations from '../AiRecommendation';
-import { formatCurrency, formatNumber } from '@/utils/dataCleaners';
+import { DollarSign, Package, TrendingUp, BarChart3 } from "lucide-react";
+import KpiCard from "../KpiCard";
+import RevenueChart from "../charts/RevenueChart";
+import OrdersChart from "../charts/OrdersChart";
+import ProductPieChart from "../charts/ProductPieChart";
+import ChartInsight from "../ChatInsight";
+import AIRecommendations from "../AiRecommendation";
+import RangeSelector from "../RangeSelector";
+import { formatCurrency, formatNumber } from "@/utils/dataCleaners";
 import {
   analyzeRevenueTrends,
   analyzeOrderTrends,
   analyzeRevenueByProduct,
-  analyzeProductDistribution
-} from '@/utils/insightEngine';
+  analyzeProductDistribution,
+} from "@/utils/insightEngine";
 
-const RevenueSection = ({ metrics, revenueByMonth, ordersByProduct }) => {
+const RevenueSection = ({
+  metrics,
+  revenueByMonth,
+  ordersByProduct,
+  dataRange,
+  setDataRange,
+  rangeOptions,
+  totalRecords,
+}) => {
   // Generate insights
   const revenueTrendInsight = analyzeRevenueTrends(revenueByMonth);
   const orderTrendInsight = analyzeOrderTrends(revenueByMonth);
   const revenueByProductInsight = analyzeRevenueByProduct(ordersByProduct);
-  const orderDistributionInsight = analyzeProductDistribution(ordersByProduct, 'orders');
+  const orderDistributionInsight = analyzeProductDistribution(
+    ordersByProduct,
+    "orders"
+  );
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold font-display text-foreground">Revenue & Orders</h1>
-        <p className="text-muted-foreground mt-1">Detailed revenue analysis and order metrics</p>
+      {/* Page Header with Range Selector */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold font-display text-foreground">
+            Revenue & Orders
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Detailed revenue analysis and order metrics
+          </p>
+        </div>
+        <RangeSelector
+          dataRange={dataRange}
+          setDataRange={setDataRange}
+          rangeOptions={rangeOptions}
+          totalRecords={totalRecords}
+        />
+      </div>
+
+      {/* Data Range Info */}
+      <div className="glass-card p-4">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Currently viewing orders{" "}
+            <span className="font-semibold text-foreground">
+              {dataRange.start + 1} -{" "}
+              {Math.min(dataRange.end, totalRecords?.orders || 0)}
+            </span>{" "}
+            of {totalRecords?.orders || 0} total
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Charts reflect data from selected range only
+          </div>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -68,48 +109,64 @@ const RevenueSection = ({ metrics, revenueByMonth, ordersByProduct }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <RevenueChart data={revenueByMonth} />
-          <ChartInsight type={revenueTrendInsight.type} message={revenueTrendInsight.message} />
+          <ChartInsight
+            type={revenueTrendInsight.type}
+            message={revenueTrendInsight.message}
+          />
         </div>
         <div>
           <OrdersChart data={revenueByMonth} />
-          <ChartInsight type={orderTrendInsight.type} message={orderTrendInsight.message} />
+          <ChartInsight
+            type={orderTrendInsight.type}
+            message={orderTrendInsight.message}
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
-          <ProductPieChart 
-            data={ordersByProduct} 
-            title="Orders by Product" 
+          <ProductPieChart
+            data={ordersByProduct}
+            title="Orders by Product"
             dataKey="orders"
           />
-          <ChartInsight type={orderDistributionInsight.type} message={orderDistributionInsight.message} />
+          <ChartInsight
+            type={orderDistributionInsight.type}
+            message={orderDistributionInsight.message}
+          />
         </div>
         <div>
-          <ProductPieChart 
-            data={ordersByProduct} 
-            title="Revenue by Product" 
+          <ProductPieChart
+            data={ordersByProduct}
+            title="Revenue by Product"
             dataKey="revenue"
           />
-          <ChartInsight type={revenueByProductInsight.type} message={revenueByProductInsight.message} />
+          <ChartInsight
+            type={revenueByProductInsight.type}
+            message={revenueByProductInsight.message}
+          />
         </div>
       </div>
 
       {/* AI-Powered Recommendations */}
-      <AIRecommendations 
+      <AIRecommendations
         sectionType="revenue"
         metrics={{
           totalRevenue: metrics.totalRevenue.toFixed(0),
           netRevenue: metrics.netRevenue.toFixed(0),
           totalOrders: metrics.totalOrders,
           aov: metrics.aov.toFixed(2),
-          topProduct: ordersByProduct.sort((a, b) => (b.revenue || 0) - (a.revenue || 0))[0]?.product,
-          topProductRevenue: ordersByProduct.sort((a, b) => (b.revenue || 0) - (a.revenue || 0))[0]?.revenue?.toFixed(0)
+          topProduct: ordersByProduct.sort(
+            (a, b) => (b.revenue || 0) - (a.revenue || 0)
+          )[0]?.product,
+          topProductRevenue: ordersByProduct
+            .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))[0]
+            ?.revenue?.toFixed(0),
         }}
         insights={{
           revenueTrend: revenueTrendInsight,
           orderTrend: orderTrendInsight,
-          revenueByProduct: revenueByProductInsight
+          revenueByProduct: revenueByProductInsight,
         }}
       />
     </div>

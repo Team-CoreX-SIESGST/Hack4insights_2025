@@ -1,26 +1,72 @@
-import { RotateCcw, DollarSign, AlertTriangle, Package } from 'lucide-react';
-import KpiCard from '../KpiCard';
-import RefundChart from '../charts/RefundChart';
-import ChartInsight from '../ChatInsight';
-import AIRecommendations from '../AiRecommendation';
-import { formatCurrency, formatPercentage, formatNumber } from '@/utils/dataCleaners';
+import { RotateCcw, DollarSign, AlertTriangle, Package } from "lucide-react";
+import KpiCard from "../KpiCard";
+import RefundChart from "../charts/RefundChart";
+import ChartInsight from "../ChatInsight";
+import AIRecommendations from "../AiRecommendation";
+import RangeSelector from "../RangeSelector";
+import {
+  formatCurrency,
+  formatPercentage,
+  formatNumber,
+} from "@/utils/dataCleaners";
 import {
   analyzeRefundTrends,
-  analyzeRefundByProduct
-} from '@/utils/insightEngine';
+  analyzeRefundByProduct,
+} from "@/utils/insightEngine";
 
-const RefundSection = ({ metrics, refundsByProduct, totalRefundCount }) => {
+const RefundSection = ({
+  metrics,
+  refundsByProduct,
+  totalRefundCount,
+  dataRange,
+  setDataRange,
+  rangeOptions,
+  totalRecords,
+}) => {
   // Generate insights
-  const avgRefundValue = totalRefundCount > 0 ? metrics.totalRefunds / totalRefundCount : 0;
-  const refundTrendInsight = analyzeRefundTrends(metrics.refundRate, avgRefundValue, totalRefundCount);
+  const avgRefundValue =
+    totalRefundCount > 0 ? metrics.totalRefunds / totalRefundCount : 0;
+  const refundTrendInsight = analyzeRefundTrends(
+    metrics.refundRate,
+    avgRefundValue,
+    totalRefundCount
+  );
   const refundByProductInsight = analyzeRefundByProduct(refundsByProduct);
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold font-display text-foreground">Refund Analysis</h1>
-        <p className="text-muted-foreground mt-1">Track and analyze refund patterns</p>
+      {/* Page Header with Range Selector */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold font-display text-foreground">
+            Refund Analysis
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Track and analyze refund patterns
+          </p>
+        </div>
+        <RangeSelector
+          dataRange={dataRange}
+          setDataRange={setDataRange}
+          rangeOptions={rangeOptions}
+          totalRecords={totalRecords}
+        />
+      </div>
+
+      {/* Data Range Info */}
+      <div className="glass-card p-4">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Currently viewing refunds from orders{" "}
+            <span className="font-semibold text-foreground">
+              {dataRange.start + 1} -{" "}
+              {Math.min(dataRange.end, totalRecords?.orders || 0)}
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {totalRefundCount} refunds in selected range
+          </div>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -60,25 +106,39 @@ const RefundSection = ({ metrics, refundsByProduct, totalRefundCount }) => {
       </div>
 
       {/* Refund Rate Insight */}
-      <ChartInsight type={refundTrendInsight.type} message={refundTrendInsight.message} />
+      <ChartInsight
+        type={refundTrendInsight.type}
+        message={refundTrendInsight.message}
+      />
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <RefundChart data={refundsByProduct} />
-          <ChartInsight type={refundByProductInsight.type} message={refundByProductInsight.message} />
+          <ChartInsight
+            type={refundByProductInsight.type}
+            message={refundByProductInsight.message}
+          />
         </div>
-        
+
         {/* Top Refunded Products Table */}
         <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold font-display text-foreground mb-6">Top Refunded Products</h3>
+          <h3 className="text-lg font-semibold font-display text-foreground mb-6">
+            Top Refunded Products
+          </h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Product</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Refunds</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Amount</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Product
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Refunds
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Amount
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -86,10 +146,19 @@ const RefundSection = ({ metrics, refundsByProduct, totalRefundCount }) => {
                   .sort((a, b) => b.amount - a.amount)
                   .slice(0, 5)
                   .map((item, index) => (
-                    <tr key={index} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-                      <td className="py-3 px-4 text-sm text-foreground">{item.product}</td>
-                      <td className="py-3 px-4 text-sm text-foreground text-right">{formatNumber(item.refunds)}</td>
-                      <td className="py-3 px-4 text-sm text-destructive text-right">{formatCurrency(item.amount)}</td>
+                    <tr
+                      key={index}
+                      className="border-b border-border/50 hover:bg-secondary/30 transition-colors"
+                    >
+                      <td className="py-3 px-4 text-sm text-foreground">
+                        {item.product}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-foreground text-right">
+                        {formatNumber(item.refunds)}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-destructive text-right">
+                        {formatCurrency(item.amount)}
+                      </td>
                     </tr>
                   ))}
               </tbody>
@@ -99,19 +168,23 @@ const RefundSection = ({ metrics, refundsByProduct, totalRefundCount }) => {
       </div>
 
       {/* AI-Powered Recommendations */}
-      <AIRecommendations 
+      <AIRecommendations
         sectionType="refund"
         metrics={{
           totalRefunds: metrics.totalRefunds.toFixed(0),
           refundRate: metrics.refundRate.toFixed(1),
           refundCount: totalRefundCount,
           avgRefundValue: avgRefundValue.toFixed(2),
-          topRefundedProduct: refundsByProduct.sort((a, b) => b.amount - a.amount)[0]?.product,
-          topRefundedAmount: refundsByProduct.sort((a, b) => b.amount - a.amount)[0]?.amount?.toFixed(0)
+          topRefundedProduct: refundsByProduct.sort(
+            (a, b) => b.amount - a.amount
+          )[0]?.product,
+          topRefundedAmount: refundsByProduct
+            .sort((a, b) => b.amount - a.amount)[0]
+            ?.amount?.toFixed(0),
         }}
         insights={{
           refundTrend: refundTrendInsight,
-          refundByProduct: refundByProductInsight
+          refundByProduct: refundByProductInsight,
         }}
       />
     </div>

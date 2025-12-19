@@ -1,53 +1,77 @@
-import { Users, Monitor, Smartphone, TrendingUp, MousePointer, BarChart3, RefreshCw } from 'lucide-react';
-import KpiCard from '../KpiCard';
-import TrafficChart from '../charts/TrafficChart';
-import ChartInsight from '../ChatInsight';
-import AIRecommendations from '../AiRecommendation';
-import { formatNumber, formatPercentage } from '@/utils/dataCleaners';
-import { 
-  analyzeTimelineData, 
-  analyzeSourceData, 
+import {
+  Users,
+  Monitor,
+  Smartphone,
+  TrendingUp,
+  MousePointer,
+  BarChart3,
+  RefreshCw,
+} from "lucide-react";
+import KpiCard from "../KpiCard";
+import TrafficChart from "../charts/TrafficChart";
+import ChartInsight from "../ChatInsight";
+import AIRecommendations from "../AiRecommendation";
+import RangeSelector from "../RangeSelector";
+import { formatNumber, formatPercentage } from "@/utils/dataCleaners";
+import {
+  analyzeTimelineData,
+  analyzeSourceData,
   analyzeDeviceData,
   analyzeCampaignData,
   analyzeLandingPages,
-  analyzeBounceRate
-} from '@/utils/insightEngine';
+  analyzeBounceRate,
+} from "@/utils/insightEngine";
 
-const TrafficSection = ({ sessions, pageviews }) => {
+const TrafficSection = ({
+  sessions,
+  pageviews,
+  dataRange,
+  setDataRange,
+  rangeOptions,
+  totalRecords,
+}) => {
   // Calculate metrics
   const calculateMetrics = () => {
     // Total sessions
     const totalSessions = sessions.length;
-    
+
     // Unique users
-    const uniqueUsers = new Set(sessions.map(s => s.user_id)).size;
-    
+    const uniqueUsers = new Set(sessions.map((s) => s.user_id)).size;
+
     // Device breakdown
     const deviceCounts = sessions.reduce((acc, session) => {
-      const device = session.device_type?.toLowerCase() || 'unknown';
+      const device = session.device_type?.toLowerCase() || "unknown";
       acc[device] = (acc[device] || 0) + 1;
       return acc;
     }, {});
-    
+
     // New vs Returning
-    const newSessions = sessions.filter(s => s.is_repeat_session === "0").length;
-    const returningSessions = sessions.filter(s => s.is_repeat_session === "1").length;
-    
+    const newSessions = sessions.filter(
+      (s) => s.is_repeat_session === "0"
+    ).length;
+    const returningSessions = sessions.filter(
+      (s) => s.is_repeat_session === "1"
+    ).length;
+
     // Bounce rate calculation (sessions with only 1 pageview)
     const sessionPageviewCounts = pageviews.reduce((acc, pv) => {
       acc[pv.website_session_id] = (acc[pv.website_session_id] || 0) + 1;
       return acc;
     }, {});
-    
-    const bouncedSessions = Object.values(sessionPageviewCounts).filter(count => count === 1).length;
-    const bounceRate = totalSessions > 0 ? (bouncedSessions / totalSessions) * 100 : 0;
-    
+
+    const bouncedSessions = Object.values(sessionPageviewCounts).filter(
+      (count) => count === 1
+    ).length;
+    const bounceRate =
+      totalSessions > 0 ? (bouncedSessions / totalSessions) * 100 : 0;
+
     // Average pages per session
-    const avgPagesPerSession = totalSessions > 0 ? pageviews.length / totalSessions : 0;
-    
+    const avgPagesPerSession =
+      totalSessions > 0 ? pageviews.length / totalSessions : 0;
+
     // Traffic by source
     const trafficBySource = sessions.reduce((acc, session) => {
-      const source = session.utm_source || 'direct';
+      const source = session.utm_source || "direct";
       if (!acc[source]) {
         acc[source] = { source, sessions: 0, users: new Set() };
       }
@@ -55,59 +79,66 @@ const TrafficSection = ({ sessions, pageviews }) => {
       acc[source].users.add(session.user_id);
       return acc;
     }, {});
-    
-    const sourceData = Object.values(trafficBySource).map(item => ({
-      source: item.source,
-      sessions: item.sessions,
-      users: item.users.size
-    })).sort((a, b) => b.sessions - a.sessions);
-    
+
+    const sourceData = Object.values(trafficBySource)
+      .map((item) => ({
+        source: item.source,
+        sessions: item.sessions,
+        users: item.users.size,
+      }))
+      .sort((a, b) => b.sessions - a.sessions);
+
     // Traffic by campaign
     const trafficByCampaign = sessions.reduce((acc, session) => {
-      const campaign = session.utm_campaign || 'none';
+      const campaign = session.utm_campaign || "none";
       if (!acc[campaign]) {
         acc[campaign] = { campaign, sessions: 0 };
       }
       acc[campaign].sessions += 1;
       return acc;
     }, {});
-    
-    const campaignData = Object.values(trafficByCampaign).sort((a, b) => b.sessions - a.sessions);
-    
+
+    const campaignData = Object.values(trafficByCampaign).sort(
+      (a, b) => b.sessions - a.sessions
+    );
+
     // Traffic over time (by day)
     const trafficByDate = sessions.reduce((acc, session) => {
-      const date = session.created_at.split(' ')[0];
+      const date = session.created_at.split(" ")[0];
       if (!acc[date]) {
         acc[date] = { date, sessions: 0, desktop: 0, mobile: 0 };
       }
       acc[date].sessions += 1;
-      if (session.device_type?.toLowerCase() === 'desktop') {
+      if (session.device_type?.toLowerCase() === "desktop") {
         acc[date].desktop += 1;
-      } else if (session.device_type?.toLowerCase() === 'mobile') {
+      } else if (session.device_type?.toLowerCase() === "mobile") {
         acc[date].mobile += 1;
       }
       return acc;
     }, {});
-    
-    const timelineData = Object.values(trafficByDate).sort((a, b) => 
-      new Date(a.date) - new Date(b.date)
+
+    const timelineData = Object.values(trafficByDate).sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
     );
-    
+
     // Top landing pages
-    const landingPages = pageviews.reduce((acc, pv) => {
-      // Get first pageview for each session
-      if (!acc.sessions[pv.website_session_id]) {
-        acc.sessions[pv.website_session_id] = true;
-        const url = pv.pageview_url || '/';
-        acc.pages[url] = (acc.pages[url] || 0) + 1;
-      }
-      return acc;
-    }, { sessions: {}, pages: {} });
-    
+    const landingPages = pageviews.reduce(
+      (acc, pv) => {
+        // Get first pageview for each session
+        if (!acc.sessions[pv.website_session_id]) {
+          acc.sessions[pv.website_session_id] = true;
+          const url = pv.pageview_url || "/";
+          acc.pages[url] = (acc.pages[url] || 0) + 1;
+        }
+        return acc;
+      },
+      { sessions: {}, pages: {} }
+    );
+
     const topLandingPages = Object.entries(landingPages.pages)
       .map(([url, count]) => ({ url, sessions: count }))
       .sort((a, b) => b.sessions - a.sessions);
-    
+
     return {
       totalSessions,
       uniqueUsers,
@@ -119,29 +150,64 @@ const TrafficSection = ({ sessions, pageviews }) => {
       sourceData,
       campaignData,
       timelineData,
-      topLandingPages
+      topLandingPages,
     };
   };
-  
+
   const metrics = calculateMetrics();
-  
+
   // Generate insights for each chart
   const timelineInsight = analyzeTimelineData(metrics.timelineData);
   const sourceInsight = analyzeSourceData(metrics.sourceData);
   const deviceInsight = analyzeDeviceData([
-    { device: 'desktop', sessions: metrics.deviceCounts.desktop || 0 },
-    { device: 'mobile', sessions: metrics.deviceCounts.mobile || 0 }
+    { device: "desktop", sessions: metrics.deviceCounts.desktop || 0 },
+    { device: "mobile", sessions: metrics.deviceCounts.mobile || 0 },
   ]);
   const campaignInsight = analyzeCampaignData(metrics.campaignData);
-  const bounceInsight = analyzeBounceRate(metrics.bounceRate, metrics.avgPagesPerSession);
-  const landingPageInsight = analyzeLandingPages(metrics.topLandingPages, metrics.totalSessions);
-  
+  const bounceInsight = analyzeBounceRate(
+    metrics.bounceRate,
+    metrics.avgPagesPerSession
+  );
+  const landingPageInsight = analyzeLandingPages(
+    metrics.topLandingPages,
+    metrics.totalSessions
+  );
+
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold font-display text-foreground">Traffic & Analysis</h1>
-        <p className="text-muted-foreground mt-1">Monitor website traffic and user behavior</p>
+      {/* Page Header with Range Selector */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold font-display text-foreground">
+            Traffic & Analysis
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Monitor website traffic and user behavior
+          </p>
+        </div>
+        <RangeSelector
+          dataRange={dataRange}
+          setDataRange={setDataRange}
+          rangeOptions={rangeOptions}
+          totalRecords={totalRecords}
+        />
+      </div>
+
+      {/* Data Range Info */}
+      <div className="glass-card p-4">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Currently viewing sessions{" "}
+            <span className="font-semibold text-foreground">
+              {dataRange.start + 1} -{" "}
+              {Math.min(dataRange.end, totalRecords?.sessions || 0)}
+            </span>{" "}
+            of {totalRecords?.sessions || 0} total
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {metrics.uniqueUsers} unique users in selected range
+          </div>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -203,7 +269,9 @@ const TrafficSection = ({ sessions, pageviews }) => {
         />
         <KpiCard
           title="Returning Visitors"
-          value={formatPercentage((metrics.returningSessions / metrics.totalSessions) * 100)}
+          value={formatPercentage(
+            (metrics.returningSessions / metrics.totalSessions) * 100
+          )}
           change={4.3}
           changeLabel="vs last period"
           trend="up"
@@ -214,44 +282,59 @@ const TrafficSection = ({ sessions, pageviews }) => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
-          <TrafficChart 
-            type="timeline" 
-            data={metrics.timelineData} 
+          <TrafficChart
+            type="timeline"
+            data={metrics.timelineData}
             title="Traffic Over Time"
           />
-          <ChartInsight type={timelineInsight.type} message={timelineInsight.message} />
+          <ChartInsight
+            type={timelineInsight.type}
+            message={timelineInsight.message}
+          />
         </div>
-        
+
         <div>
-          <TrafficChart 
-            type="source" 
-            data={metrics.sourceData} 
+          <TrafficChart
+            type="source"
+            data={metrics.sourceData}
             title="Traffic by Source"
           />
-          <ChartInsight type={sourceInsight.type} message={sourceInsight.message} />
+          <ChartInsight
+            type={sourceInsight.type}
+            message={sourceInsight.message}
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
-          <TrafficChart 
-            type="device" 
+          <TrafficChart
+            type="device"
             data={[
-              { device: 'Desktop', sessions: metrics.deviceCounts.desktop || 0 },
-              { device: 'Mobile', sessions: metrics.deviceCounts.mobile || 0 }
-            ]} 
+              {
+                device: "Desktop",
+                sessions: metrics.deviceCounts.desktop || 0,
+              },
+              { device: "Mobile", sessions: metrics.deviceCounts.mobile || 0 },
+            ]}
             title="Device Breakdown"
           />
-          <ChartInsight type={deviceInsight.type} message={deviceInsight.message} />
+          <ChartInsight
+            type={deviceInsight.type}
+            message={deviceInsight.message}
+          />
         </div>
-        
+
         <div>
-          <TrafficChart 
-            type="campaign" 
-            data={metrics.campaignData.slice(0, 5)} 
+          <TrafficChart
+            type="campaign"
+            data={metrics.campaignData.slice(0, 5)}
             title="Top Campaigns"
           />
-          <ChartInsight type={campaignInsight.type} message={campaignInsight.message} />
+          <ChartInsight
+            type={campaignInsight.type}
+            message={campaignInsight.message}
+          />
         </div>
       </div>
 
@@ -259,26 +342,41 @@ const TrafficSection = ({ sessions, pageviews }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Traffic Sources Table */}
         <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold font-display text-foreground mb-6">Traffic Sources</h3>
+          <h3 className="text-lg font-semibold font-display text-foreground mb-6">
+            Traffic Sources
+          </h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Source</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Sessions</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Users</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Source
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Sessions
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Users
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {metrics.sourceData
-                  .slice(0, 5)
-                  .map((item, index) => (
-                    <tr key={index} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-                      <td className="py-3 px-4 text-sm text-foreground font-medium">{item.source}</td>
-                      <td className="py-3 px-4 text-sm text-foreground text-right">{formatNumber(item.sessions)}</td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground text-right">{formatNumber(item.users)}</td>
-                    </tr>
-                  ))}
+                {metrics.sourceData.slice(0, 5).map((item, index) => (
+                  <tr
+                    key={index}
+                    className="border-b border-border/50 hover:bg-secondary/30 transition-colors"
+                  >
+                    <td className="py-3 px-4 text-sm text-foreground font-medium">
+                      {item.source}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-foreground text-right">
+                      {formatNumber(item.sessions)}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground text-right">
+                      {formatNumber(item.users)}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -286,37 +384,55 @@ const TrafficSection = ({ sessions, pageviews }) => {
 
         {/* Top Landing Pages Table */}
         <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold font-display text-foreground mb-6">Top Landing Pages</h3>
+          <h3 className="text-lg font-semibold font-display text-foreground mb-6">
+            Top Landing Pages
+          </h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Page URL</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Sessions</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">%</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Page URL
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Sessions
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
+                    %
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {metrics.topLandingPages
-                  .slice(0, 5)
-                  .map((item, index) => (
-                    <tr key={index} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-                      <td className="py-3 px-4 text-sm text-foreground font-mono">{item.url}</td>
-                      <td className="py-3 px-4 text-sm text-foreground text-right">{formatNumber(item.sessions)}</td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground text-right">
-                        {formatPercentage((item.sessions / metrics.totalSessions) * 100)}
-                      </td>
-                    </tr>
-                  ))}
+                {metrics.topLandingPages.slice(0, 5).map((item, index) => (
+                  <tr
+                    key={index}
+                    className="border-b border-border/50 hover:bg-secondary/30 transition-colors"
+                  >
+                    <td className="py-3 px-4 text-sm text-foreground font-mono">
+                      {item.url}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-foreground text-right">
+                      {formatNumber(item.sessions)}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground text-right">
+                      {formatPercentage(
+                        (item.sessions / metrics.totalSessions) * 100
+                      )}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-          <ChartInsight type={landingPageInsight.type} message={landingPageInsight.message} />
+          <ChartInsight
+            type={landingPageInsight.type}
+            message={landingPageInsight.message}
+          />
         </div>
       </div>
 
       {/* AI-Powered Recommendations */}
-      <AIRecommendations 
+      <AIRecommendations
         sectionType="traffic"
         metrics={{
           totalSessions: metrics.totalSessions,
@@ -324,10 +440,22 @@ const TrafficSection = ({ sessions, pageviews }) => {
           bounceRate: metrics.bounceRate.toFixed(1),
           avgPagesPerSession: metrics.avgPagesPerSession.toFixed(2),
           topSource: metrics.sourceData[0]?.source,
-          topSourcePercent: ((metrics.sourceData[0]?.sessions / metrics.totalSessions) * 100).toFixed(0),
-          mobilePercent: ((metrics.deviceCounts.mobile || 0) / metrics.totalSessions * 100).toFixed(0),
-          desktopPercent: ((metrics.deviceCounts.desktop || 0) / metrics.totalSessions * 100).toFixed(0),
-          returningRate: ((metrics.returningSessions / metrics.totalSessions) * 100).toFixed(1)
+          topSourcePercent: (
+            (metrics.sourceData[0]?.sessions / metrics.totalSessions) *
+            100
+          ).toFixed(0),
+          mobilePercent: (
+            ((metrics.deviceCounts.mobile || 0) / metrics.totalSessions) *
+            100
+          ).toFixed(0),
+          desktopPercent: (
+            ((metrics.deviceCounts.desktop || 0) / metrics.totalSessions) *
+            100
+          ).toFixed(0),
+          returningRate: (
+            (metrics.returningSessions / metrics.totalSessions) *
+            100
+          ).toFixed(1),
         }}
         insights={{
           timeline: timelineInsight,
@@ -335,7 +463,7 @@ const TrafficSection = ({ sessions, pageviews }) => {
           device: deviceInsight,
           campaign: campaignInsight,
           bounce: bounceInsight,
-          landingPage: landingPageInsight
+          landingPage: landingPageInsight,
         }}
       />
     </div>

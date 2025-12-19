@@ -86,33 +86,33 @@ export const normalizeDeviceType = (value) => {
 };
 
 // Clean orders data
+// Update cleanOrdersData function to ensure sorting
 export const cleanOrdersData = (rawData) => {
   if (!Array.isArray(rawData)) return [];
-
-  // Limit to 500 rows for safety
-  const limitedData = rawData.slice(0, 500);
-
-  return limitedData
-    .filter((item) => item && typeof item === "object")
-    .map((item) => {
+  
+  const sortedData = sortByDate(rawData);
+  
+  return sortedData
+    .filter(item => item && typeof item === 'object')
+    .map(item => {
       const obj = item;
       // Keep created_at as string for consistency with sessions
       const createdAt = obj.created_at ? String(obj.created_at) : null;
       if (!createdAt) return null;
-
+      
       return {
-        order_id: String(obj.order_id || ""),
+        order_id: String(obj.order_id || ''),
         created_at: createdAt,
-        website_session_id: String(obj.website_session_id || ""),
-        user_id: String(obj.user_id || ""),
-        primary_product_id: String(obj.primary_product_id || ""),
+        website_session_id: String(obj.website_session_id || ''),
+        user_id: String(obj.user_id || ''),
+        primary_product_id: String(obj.primary_product_id || ''),
         items_purchased: safeNumber(obj.items_purchased),
         price_usd: safeNumber(obj.price_usd),
         cogs_usd: safeNumber(obj.cogs_usd),
       };
     })
     .filter((item) => item !== null);
-};
+};  
 
 // Clean order items data
 export const cleanOrderItemsData = (rawData) => {
@@ -405,3 +405,10 @@ export const formatNumber = (value) => {
   }
   return value.toLocaleString();
 };
+
+
+// Add this helper function at the top
+export const sortByDate = (data) => {
+  return [...data].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+};
+

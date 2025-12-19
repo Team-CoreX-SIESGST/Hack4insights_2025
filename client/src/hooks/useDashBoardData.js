@@ -24,52 +24,71 @@ import productsRaw from "../../public/data/products.json";
 import sessionsRaw from "../../public/data/website_sessions.json";
 import pageviewsRaw from "../../public/data/website_pageviews.json";
 
-const LIMIT_ROWS = 500; // Limit to 500 rows per dataset
-
 const useDashboardData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dataRange, setDataRange] = useState({ start: 0, end: 500 });
+  const [totalRecords, setTotalRecords] = useState({
+    orders: ordersRaw.length,
+    sessions: sessionsRaw.length,
+    orderItems: orderItemsRaw.length,
+    refunds: refundsRaw.length,
+    products: productsRaw.length,
+    pageviews: pageviewsRaw.length,
+  });
 
-  // Clean and process data with proper error handling
+  // Generate range options for dropdown
+  const rangeOptions = useMemo(() => {
+    const ranges = [];
+    const chunkSize = 500;
+    const maxOrders = ordersRaw.length;
+
+    for (let i = 0; i < maxOrders; i += chunkSize) {
+      const end = Math.min(i + chunkSize, maxOrders);
+      ranges.push({
+        label: `${i} - ${end}`,
+        value: { start: i, end },
+      });
+    }
+    return ranges;
+  }, []);
+
+  // Clean and process data with proper error handling and range limiting
   const processedData = useMemo(() => {
     try {
       console.log("Processing data...");
+      console.log("Current range:", dataRange);
 
-      // Limit raw data to first 500 rows
-      const ordersLimited = Array.isArray(ordersRaw)
-        ? ordersRaw.slice(0, LIMIT_ROWS)
-        : [];
-      const orderItemsLimited = Array.isArray(orderItemsRaw)
-        ? orderItemsRaw.slice(0, LIMIT_ROWS)
-        : [];
-      const refundsLimited = Array.isArray(refundsRaw)
-        ? refundsRaw.slice(0, LIMIT_ROWS)
-        : [];
-      const productsLimited = Array.isArray(productsRaw)
-        ? productsRaw.slice(0, LIMIT_ROWS)
-        : [];
-      const sessionsLimited = Array.isArray(sessionsRaw)
-        ? sessionsRaw.slice(0, LIMIT_ROWS)
-        : [];
-      const pageviewsLimited = Array.isArray(pageviewsRaw)
-        ? pageviewsRaw.slice(0, LIMIT_ROWS)
-        : [];
+      // Sort raw data by created_at to ensure consistent ordering
+      const sortByDate = (a, b) =>
+        new Date(a.created_at) - new Date(b.created_at);
 
-      console.log("Limited data counts:", {
-        orders: ordersLimited.length,
-        orderItems: orderItemsLimited.length,
-        refunds: refundsLimited.length,
-        products: productsLimited.length,
-        sessions: sessionsLimited.length,
-        pageviews: pageviewsLimited.length,
-      });
+      // Apply range to each dataset
+      const ordersSliced = [...ordersRaw]
+        .sort(sortByDate)
+        .slice(dataRange.start, dataRange.end);
+      const orderItemsSliced = [...orderItemsRaw]
+        .sort(sortByDate)
+        .slice(dataRange.start, dataRange.end);
+      const refundsSliced = [...refundsRaw]
+        .sort(sortByDate)
+        .slice(dataRange.start, dataRange.end);
+      const sessionsSliced = [...sessionsRaw]
+        .sort(sortByDate)
+        .slice(dataRange.start, dataRange.end);
+      const pageviewsSliced = [...pageviewsRaw]
+        .sort(sortByDate)
+        .slice(dataRange.start, dataRange.end);
 
-      const orders = cleanOrdersData(ordersLimited);
-      const orderItems = cleanOrderItemsData(orderItemsLimited);
-      const refunds = cleanRefundsData(refundsLimited);
-      const products = cleanProductsData(productsLimited);
-      const sessions = cleanSessionsData(sessionsLimited);
-      const pageviews = cleanPageviewsData(pageviewsLimited);
+      // Products don't need slicing as they're a small lookup table
+      const productsSliced = [...productsRaw];
+
+      const orders = cleanOrdersData(ordersSliced);
+      const orderItems = cleanOrderItemsData(orderItemsSliced);
+      const refunds = cleanRefundsData(refundsSliced);
+      const products = cleanProductsData(productsSliced);
+      const sessions = cleanSessionsData(sessionsSliced);
+      const pageviews = cleanPageviewsData(pageviewsSliced);
 
       console.log("Data processed successfully:", {
         orders: orders.length,
@@ -93,7 +112,7 @@ const useDashboardData = () => {
         pageviews: [],
       };
     }
-  }, []); // Empty dependency array since raw data is static
+  }, [dataRange]);
 
   const { orders, orderItems, refunds, products, sessions, pageviews } =
     processedData;
@@ -116,7 +135,6 @@ const useDashboardData = () => {
         totalSessions: sessions.length,
         totalPageviews: pageviews.length,
         totalProducts: products.length,
-        limited: LIMIT_ROWS, // Add info about the limit
       };
     } catch (err) {
       console.error("Error calculating metrics:", err);
@@ -130,7 +148,6 @@ const useDashboardData = () => {
         totalSessions: 0,
         totalPageviews: 0,
         totalProducts: 0,
-        limited: LIMIT_ROWS,
       };
     }
   }, [orders, refunds, sessions, pageviews]);
@@ -175,7 +192,6 @@ const useDashboardData = () => {
   useEffect(() => {
     // Simulate loading state and validate data
     const timer = setTimeout(() => {
-      // Check if we have data after limiting
       if (orders.length === 0 && ordersRaw.length > 0) {
         setError("Failed to load order data");
       } else if (sessions.length === 0 && sessionsRaw.length > 0) {
@@ -189,7 +205,12 @@ const useDashboardData = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [orders.length, sessions.length, error]);
+  }, [orders.length, sessions.length, error, dataRange]);
+
+  const handleRangeChange = (start, end) => {
+    setIsLoading(true);
+    setDataRange({ start, end });
+  };
 
   return {
     // Raw cleaned data
@@ -213,9 +234,11 @@ const useDashboardData = () => {
     isLoading,
     error,
 
-    // Info about data limitation
-    dataLimit: LIMIT_ROWS,
-    isLimited: true, // Flag to indicate data is limited
+    // Pagination controls
+    dataRange,
+    setDataRange: handleRangeChange,
+    rangeOptions,
+    totalRecords,
   };
 };
 
