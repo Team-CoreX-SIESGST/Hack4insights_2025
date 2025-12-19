@@ -21,7 +21,7 @@ import {
   analyzeLandingPages,
   analyzeBounceRate,
 } from "@/utils/insightEngine";
-
+import ChatBot from "../ChatBot"; 
 const TrafficSection = ({
   sessions,
   pageviews,
@@ -438,7 +438,7 @@ const TrafficSection = ({
           />
         </div>
       </div>
-
+      <ChatBot/>
       {/* AI-Powered Recommendations */}
       <AIRecommendations
         sectionType="traffic"

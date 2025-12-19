@@ -13,6 +13,7 @@ import {
   analyzeRevenueByProduct,
   analyzeProductDistribution,
 } from "@/utils/insightEngine";
+import ChatBot from "../ChatBot";
 
 const RevenueSection = ({
   metrics,
@@ -154,7 +155,7 @@ const RevenueSection = ({
           />
         </div>
       </div>
-
+      <ChatBot/>
       {/* AI-Powered Recommendations */}
       <AIRecommendations
         sectionType="revenue"

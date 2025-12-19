@@ -27,7 +27,7 @@ import {
   analyzeProductPerformance,
   analyzeRevenueMetrics,
 } from "@/utils/insightEngine";
-
+import ChatBot from "../ChatBot";
 const ConversionSection = ({
   sessions = [],
   orders = [],
@@ -719,7 +719,7 @@ const ConversionSection = ({
           </div>
         </div>
       </div>
-
+      <ChatBot />
       <AIRecommendations
         sectionType="conversion"
         metrics={{

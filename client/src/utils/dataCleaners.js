@@ -85,8 +85,7 @@ export const normalizeDeviceType = (value) => {
   return deviceMap[normalized] || "unknown";
 };
 
-// Clean orders data
-// Update cleanOrdersData function to ensure sorting
+// Clean orders data with date extraction
 export const cleanOrdersData = (rawData) => {
   if (!Array.isArray(rawData)) return [];
   
@@ -100,9 +99,13 @@ export const cleanOrdersData = (rawData) => {
       const createdAt = obj.created_at ? String(obj.created_at) : null;
       if (!createdAt) return null;
       
+      // Extract date part from timestamp
+      const createdDate = createdAt.split(' ')[0];
+      
       return {
         order_id: String(obj.order_id || ''),
         created_at: createdAt,
+        created_at_date: createdDate, // Add date field
         website_session_id: String(obj.website_session_id || ''),
         user_id: String(obj.user_id || ''),
         primary_product_id: String(obj.primary_product_id || ''),
@@ -112,26 +115,29 @@ export const cleanOrdersData = (rawData) => {
       };
     })
     .filter((item) => item !== null);
-};  
+};
+
 
 // Clean order items data
 export const cleanOrderItemsData = (rawData) => {
   if (!Array.isArray(rawData)) return [];
 
-  // Limit to 500000 rows for safety
   const limitedData = rawData.slice(0, 500000);
 
   return limitedData
     .filter((item) => item && typeof item === "object")
     .map((item) => {
       const obj = item;
-      // Keep created_at as string for consistency
       const createdAt = obj.created_at ? String(obj.created_at) : null;
       if (!createdAt) return null;
+
+      // Extract date part from timestamp
+      const createdDate = createdAt.split(' ')[0];
 
       return {
         order_item_id: String(obj.order_item_id || ""),
         created_at: createdAt,
+        created_at_date: createdDate, // Add date field
         order_id: String(obj.order_id || ""),
         product_id: String(obj.product_id || ""),
         is_primary_item: String(obj.is_primary_item) === "1",
@@ -412,3 +418,12 @@ export const sortByDate = (data) => {
   return [...data].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 };
 
+// Add to your existing dataCleaners.js functions
+
+
+// Similarly update other cleaning functions to include created_at_date:
+
+
+
+// Do the same for cleanRefundsData, cleanProductsData, cleanSessionsData, and cleanPageviewsData
+// by adding the created_at_date field in each

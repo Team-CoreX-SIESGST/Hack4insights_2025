@@ -1,3 +1,4 @@
+"use client"
 import {
   DollarSign,
   ShoppingCart,
@@ -15,6 +16,7 @@ import {
   formatPercentage,
   formatNumber,
 } from "@/utils/dataCleaners";
+import ChatBot from "../ChatBot";
 
 const OverviewSection = ({
   metrics,
@@ -119,7 +121,7 @@ const OverviewSection = ({
           icon={<TrendingUp className="w-4 h-4" />}
         />
       </div>
-
+      <ChatBot />
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RevenueChart data={revenueByMonth} />

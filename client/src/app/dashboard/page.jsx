@@ -15,7 +15,7 @@ import useDashboardData from "@/hooks/useDashBoardData";
 const Index = () => {
   const [activeSection, setActiveSection] = useState("overview");
 
-  // Pass activeSection to the hook so it knows which section we're in
+  // Pass activeSection to the hook
   const {
     products,
     refunds,
@@ -30,11 +30,10 @@ const Index = () => {
     error,
     orders,
     orderItems,
-    dataRange,
-    setDataRange,
-    rangeOptions,
-    totalRecords,
-    getCurrentRangeDisplay,
+    dateRange,
+    setDateRange,
+    totalDateRange,
+    getCurrentDateRangeDisplay,
   } = useDashboardData(activeSection);
 
   const renderSection = () => {
@@ -62,11 +61,10 @@ const Index = () => {
             metrics={metrics}
             revenueByMonth={revenueByMonth}
             revenueByYear={revenueByYear}
-            dataRange={dataRange}
-            setDataRange={setDataRange}
-            rangeOptions={rangeOptions}
-            totalRecords={totalRecords}
-            getCurrentRangeDisplay={getCurrentRangeDisplay}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            totalDateRange={totalDateRange}
+            getCurrentDateRangeDisplay={getCurrentDateRangeDisplay}
           />
         );
       case "revenue":
@@ -75,11 +73,10 @@ const Index = () => {
             metrics={metrics}
             revenueByMonth={revenueByMonth}
             ordersByProduct={ordersByProduct}
-            dataRange={dataRange}
-            setDataRange={setDataRange}
-            rangeOptions={rangeOptions}
-            totalRecords={totalRecords}
-            getCurrentRangeDisplay={getCurrentRangeDisplay}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            totalDateRange={totalDateRange}
+            getCurrentDateRangeDisplay={getCurrentDateRangeDisplay}
           />
         );
       case "refunds":
@@ -88,11 +85,10 @@ const Index = () => {
             metrics={metrics}
             refundsByProduct={refundsByProduct}
             totalRefundCount={refunds.length}
-            dataRange={dataRange}
-            setDataRange={setDataRange}
-            rangeOptions={rangeOptions}
-            totalRecords={totalRecords}
-            getCurrentRangeDisplay={getCurrentRangeDisplay}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            totalDateRange={totalDateRange}
+            getCurrentDateRangeDisplay={getCurrentDateRangeDisplay}
           />
         );
       case "products":
@@ -101,11 +97,10 @@ const Index = () => {
             products={products}
             ordersByProduct={ordersByProduct}
             refundsByProduct={refundsByProduct}
-            dataRange={dataRange}
-            setDataRange={setDataRange}
-            rangeOptions={rangeOptions}
-            totalRecords={totalRecords}
-            getCurrentRangeDisplay={getCurrentRangeDisplay}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            totalDateRange={totalDateRange}
+            getCurrentDateRangeDisplay={getCurrentDateRangeDisplay}
           />
         );
       case "ask_ai":
@@ -115,11 +110,10 @@ const Index = () => {
           <TrafficSection
             sessions={sessions}
             pageviews={pageviews}
-            dataRange={dataRange}
-            setDataRange={setDataRange}
-            rangeOptions={rangeOptions}
-            totalRecords={totalRecords}
-            getCurrentRangeDisplay={getCurrentRangeDisplay}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            totalDateRange={totalDateRange}
+            getCurrentDateRangeDisplay={getCurrentDateRangeDisplay}
           />
         );
       case "conversion":
@@ -130,11 +124,10 @@ const Index = () => {
             orderItems={orderItems}
             products={products}
             pageviews={pageviews}
-            dataRange={dataRange}
-            setDataRange={setDataRange}
-            rangeOptions={rangeOptions}
-            totalRecords={totalRecords}
-            getCurrentRangeDisplay={getCurrentRangeDisplay}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            totalDateRange={totalDateRange}
+            getCurrentDateRangeDisplay={getCurrentDateRangeDisplay}
           />
         );
       default:
@@ -143,11 +136,10 @@ const Index = () => {
             metrics={metrics}
             revenueByMonth={revenueByMonth}
             revenueByYear={revenueByYear}
-            dataRange={dataRange}
-            setDataRange={setDataRange}
-            rangeOptions={rangeOptions}
-            totalRecords={totalRecords}
-            getCurrentRangeDisplay={getCurrentRangeDisplay}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            totalDateRange={totalDateRange}
+            getCurrentDateRangeDisplay={getCurrentDateRangeDisplay}
           />
         );
     }
@@ -157,11 +149,10 @@ const Index = () => {
     <DashboardLayout
       activeSection={activeSection}
       onSectionChange={setActiveSection}
-      dataRange={dataRange}
-      setDataRange={setDataRange}
-      rangeOptions={rangeOptions}
-      totalRecords={totalRecords}
-      getCurrentRangeDisplay={getCurrentRangeDisplay}
+      dateRange={dateRange}
+      setDateRange={setDateRange}
+      totalDateRange={totalDateRange}
+      getCurrentDateRangeDisplay={getCurrentDateRangeDisplay}
       isLoading={isLoading}
     >
       {renderSection()}

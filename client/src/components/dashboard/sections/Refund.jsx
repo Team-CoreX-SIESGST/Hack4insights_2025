@@ -13,6 +13,7 @@ import {
   analyzeRefundTrends,
   analyzeRefundByProduct,
 } from "@/utils/insightEngine";
+import ChatBot from "../ChatBot";
 
 const RefundSection = ({
   metrics,
@@ -174,7 +175,7 @@ const RefundSection = ({
           </div>
         </div>
       </div>
-
+      <ChatBot/>
       {/* AI-Powered Recommendations */}
       <AIRecommendations
         sectionType="refund"

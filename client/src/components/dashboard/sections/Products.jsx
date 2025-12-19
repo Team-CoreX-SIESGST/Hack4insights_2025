@@ -8,6 +8,7 @@ import {
   analyzeProductDistribution,
   analyzeProductRefundRate,
 } from "@/utils/insightEngine";
+import ChatBot from "../ChatBot";
 
 const ProductsSection = ({
   products,
@@ -208,7 +209,7 @@ const ProductsSection = ({
           />
         </div>
       </div>
-
+      <ChatBot/>
       {/* AI-Powered Recommendations */}
       <AIRecommendations
         sectionType="products"
