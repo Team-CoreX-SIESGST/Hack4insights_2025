@@ -5,7 +5,13 @@ const RangeSelector = ({
   setDataRange,
   rangeOptions,
   totalRecords,
+  getCurrentRangeDisplay,
+  activeSection = "overview",
 }) => {
+  if (!rangeOptions || !dataRange || activeSection === "ask_ai") return null;
+
+  const rangeDisplay = getCurrentRangeDisplay ? getCurrentRangeDisplay() : null;
+
   return (
     <div className="flex items-center gap-3">
       <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary border border-border">
@@ -30,12 +36,13 @@ const RangeSelector = ({
         ))}
       </select>
 
-      <div className="text-xs text-muted-foreground bg-secondary/50 px-3 py-2 rounded-lg">
-        <Filter className="w-3 h-3 inline mr-1" />
-        Showing {dataRange.start + 1} -{" "}
-        {Math.min(dataRange.end, totalRecords?.orders || 0)} of{" "}
-        {totalRecords?.orders || 0}
-      </div>
+      {rangeDisplay && (
+        <div className="text-xs text-muted-foreground bg-secondary/50 px-3 py-2 rounded-lg">
+          <Filter className="w-3 h-3 inline mr-1" />
+          Showing {rangeDisplay.current} of {rangeDisplay.total}{" "}
+          {rangeDisplay.label}
+        </div>
+      )}
     </div>
   );
 };

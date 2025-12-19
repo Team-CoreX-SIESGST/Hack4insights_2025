@@ -9,12 +9,12 @@ import {
 import KpiCard from "../KpiCard";
 import RevenueChart from "../charts/RevenueChart";
 import YearlyComparisonChart from "../charts/YearlyComparisionChart";
+import RangeSelector from "../RangeSelector";
 import {
   formatCurrency,
   formatPercentage,
   formatNumber,
 } from "@/utils/dataCleaners";
-import RangeSelector from "../RangeSelector";
 
 const OverviewSection = ({
   metrics,
@@ -24,7 +24,10 @@ const OverviewSection = ({
   setDataRange,
   rangeOptions,
   totalRecords,
+  getCurrentRangeDisplay,
 }) => {
+  const rangeDisplay = getCurrentRangeDisplay ? getCurrentRangeDisplay() : null;
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Page Header with Range Selector */}
@@ -42,25 +45,28 @@ const OverviewSection = ({
           setDataRange={setDataRange}
           rangeOptions={rangeOptions}
           totalRecords={totalRecords}
+          getCurrentRangeDisplay={getCurrentRangeDisplay}
+          activeSection="overview"
         />
       </div>
 
       {/* Data Range Info */}
-      <div className="glass-card p-4">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Currently viewing records{" "}
-            <span className="font-semibold text-foreground">
-              {dataRange.start + 1} -{" "}
-              {Math.min(dataRange.end, totalRecords?.orders || 0)}
-            </span>{" "}
-            of {totalRecords?.orders || 0} total orders
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Data is sorted by date (oldest to newest)
+      {rangeDisplay && (
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Currently viewing{" "}
+              <span className="font-semibold text-foreground">
+                {rangeDisplay.label}
+              </span>{" "}
+              {rangeDisplay.current} of {rangeDisplay.total} total
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Data is sorted by date (oldest to newest)
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">

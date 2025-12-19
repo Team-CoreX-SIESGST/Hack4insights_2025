@@ -22,6 +22,7 @@ const RefundSection = ({
   setDataRange,
   rangeOptions,
   totalRecords,
+  getCurrentRangeDisplay,
 }) => {
   // Generate insights
   const avgRefundValue =
@@ -32,6 +33,8 @@ const RefundSection = ({
     totalRefundCount
   );
   const refundByProductInsight = analyzeRefundByProduct(refundsByProduct);
+
+  const rangeDisplay = getCurrentRangeDisplay ? getCurrentRangeDisplay() : null;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -50,24 +53,29 @@ const RefundSection = ({
           setDataRange={setDataRange}
           rangeOptions={rangeOptions}
           totalRecords={totalRecords}
+          getCurrentRangeDisplay={getCurrentRangeDisplay}
+          activeSection="refunds"
         />
       </div>
 
       {/* Data Range Info */}
-      <div className="glass-card p-4">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Currently viewing refunds from orders{" "}
-            <span className="font-semibold text-foreground">
-              {dataRange.start + 1} -{" "}
-              {Math.min(dataRange.end, totalRecords?.orders || 0)}
-            </span>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {totalRefundCount} refunds in selected range
+      {rangeDisplay && (
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Currently viewing{" "}
+              <span className="font-semibold text-foreground">
+                {rangeDisplay.label}
+              </span>{" "}
+              {rangeDisplay.current} of {rangeDisplay.total} total
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {totalRefundCount} refunds in selected range | Avg refund:{" "}
+              {formatCurrency(avgRefundValue)}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

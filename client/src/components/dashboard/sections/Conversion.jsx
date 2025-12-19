@@ -38,6 +38,7 @@ const ConversionSection = ({
   setDataRange,
   rangeOptions,
   totalRecords,
+  getCurrentRangeDisplay,
 }) => {
   // Calculate comprehensive conversion metrics
   const calculateMetrics = () => {
@@ -311,6 +312,8 @@ const ConversionSection = ({
     metrics.totalOrders
   );
 
+  const rangeDisplay = getCurrentRangeDisplay ? getCurrentRangeDisplay() : null;
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Page Header with Range Selector */}
@@ -328,25 +331,30 @@ const ConversionSection = ({
           setDataRange={setDataRange}
           rangeOptions={rangeOptions}
           totalRecords={totalRecords}
+          getCurrentRangeDisplay={getCurrentRangeDisplay}
+          activeSection="conversion"
         />
       </div>
 
       {/* Data Range Info */}
-      <div className="glass-card p-4">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Analyzing data from orders{" "}
-            <span className="font-semibold text-foreground">
-              {dataRange.start + 1} -{" "}
-              {Math.min(dataRange.end, totalRecords?.orders || 0)}
-            </span>{" "}
-            and corresponding sessions
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {metrics.totalOrders} orders in selected range
+      {rangeDisplay && (
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Currently viewing{" "}
+              <span className="font-semibold text-foreground">
+                {rangeDisplay.label}
+              </span>{" "}
+              {rangeDisplay.current} of {rangeDisplay.total} total
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {metrics.totalOrders} orders and{" "}
+              {metrics.newVisitors + metrics.returningVisitors} sessions in
+              selected range
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard

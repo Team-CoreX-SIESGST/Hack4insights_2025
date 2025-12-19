@@ -17,6 +17,7 @@ const ProductsSection = ({
   setDataRange,
   rangeOptions,
   totalRecords,
+  getCurrentRangeDisplay,
 }) => {
   // Merge product data
   const productData = products.map((product) => {
@@ -70,6 +71,8 @@ const ProductsSection = ({
     (a, b) => (b.revenue || 0) - (a.revenue || 0)
   )[0];
 
+  const rangeDisplay = getCurrentRangeDisplay ? getCurrentRangeDisplay() : null;
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Page Header with Range Selector */}
@@ -87,24 +90,29 @@ const ProductsSection = ({
           setDataRange={setDataRange}
           rangeOptions={rangeOptions}
           totalRecords={totalRecords}
+          getCurrentRangeDisplay={getCurrentRangeDisplay}
+          activeSection="products"
         />
       </div>
 
       {/* Data Range Info */}
-      <div className="glass-card p-4">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Product data from orders{" "}
-            <span className="font-semibold text-foreground">
-              {dataRange.start + 1} -{" "}
-              {Math.min(dataRange.end, totalRecords?.orders || 0)}
-            </span>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {products.length} total products in catalog
+      {rangeDisplay && (
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Currently viewing{" "}
+              <span className="font-semibold text-foreground">
+                {rangeDisplay.label}
+              </span>{" "}
+              {rangeDisplay.current} of {rangeDisplay.total} total
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {products.length} total products in catalog | {totalOrders} orders
+              in selected range
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Product Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

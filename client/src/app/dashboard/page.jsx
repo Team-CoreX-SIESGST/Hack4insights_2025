@@ -14,6 +14,8 @@ import useDashboardData from "@/hooks/useDashBoardData";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("overview");
+
+  // Pass activeSection to the hook so it knows which section we're in
   const {
     products,
     refunds,
@@ -32,7 +34,8 @@ const Index = () => {
     setDataRange,
     rangeOptions,
     totalRecords,
-  } = useDashboardData();
+    getCurrentRangeDisplay,
+  } = useDashboardData(activeSection);
 
   const renderSection = () => {
     if (isLoading) {
@@ -63,6 +66,7 @@ const Index = () => {
             setDataRange={setDataRange}
             rangeOptions={rangeOptions}
             totalRecords={totalRecords}
+            getCurrentRangeDisplay={getCurrentRangeDisplay}
           />
         );
       case "revenue":
@@ -75,6 +79,7 @@ const Index = () => {
             setDataRange={setDataRange}
             rangeOptions={rangeOptions}
             totalRecords={totalRecords}
+            getCurrentRangeDisplay={getCurrentRangeDisplay}
           />
         );
       case "refunds":
@@ -87,6 +92,7 @@ const Index = () => {
             setDataRange={setDataRange}
             rangeOptions={rangeOptions}
             totalRecords={totalRecords}
+            getCurrentRangeDisplay={getCurrentRangeDisplay}
           />
         );
       case "products":
@@ -99,6 +105,7 @@ const Index = () => {
             setDataRange={setDataRange}
             rangeOptions={rangeOptions}
             totalRecords={totalRecords}
+            getCurrentRangeDisplay={getCurrentRangeDisplay}
           />
         );
       case "ask_ai":
@@ -112,6 +119,7 @@ const Index = () => {
             setDataRange={setDataRange}
             rangeOptions={rangeOptions}
             totalRecords={totalRecords}
+            getCurrentRangeDisplay={getCurrentRangeDisplay}
           />
         );
       case "conversion":
@@ -126,6 +134,7 @@ const Index = () => {
             setDataRange={setDataRange}
             rangeOptions={rangeOptions}
             totalRecords={totalRecords}
+            getCurrentRangeDisplay={getCurrentRangeDisplay}
           />
         );
       default:
@@ -138,6 +147,7 @@ const Index = () => {
             setDataRange={setDataRange}
             rangeOptions={rangeOptions}
             totalRecords={totalRecords}
+            getCurrentRangeDisplay={getCurrentRangeDisplay}
           />
         );
     }
@@ -151,6 +161,7 @@ const Index = () => {
       setDataRange={setDataRange}
       rangeOptions={rangeOptions}
       totalRecords={totalRecords}
+      getCurrentRangeDisplay={getCurrentRangeDisplay}
       isLoading={isLoading}
     >
       {renderSection()}

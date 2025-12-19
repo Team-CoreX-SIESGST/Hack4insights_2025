@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "./Sidebar";
-import { Bell, Search, Filter } from "lucide-react";
+import { Bell, Search, Filter, Database } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
 const DashboardLayout = ({
@@ -13,6 +13,7 @@ const DashboardLayout = ({
   setDataRange,
   rangeOptions,
   totalRecords,
+  getCurrentRangeDisplay,
   isLoading,
 }) => {
   const { user } = useAuth();
@@ -32,6 +33,8 @@ const DashboardLayout = ({
       setDataRange(option.value.start, option.value.end);
     }
   };
+
+  const rangeDisplay = getCurrentRangeDisplay ? getCurrentRangeDisplay() : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,10 +58,16 @@ const DashboardLayout = ({
                 />
               </div>
 
-              {/* Data Range Selector */}
-              {rangeOptions && dataRange && (
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-muted-foreground" />
+              {/* Data Range Selector - Only show for non-AI sections */}
+              {rangeOptions && dataRange && activeSection !== "ask_ai" && (
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary border border-border">
+                    <Database className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-foreground font-medium">
+                      Data Range:
+                    </span>
+                  </div>
+
                   <select
                     value={`${dataRange.start} - ${dataRange.end}`}
                     onChange={(e) => {
@@ -68,7 +77,7 @@ const DashboardLayout = ({
                       if (selected) handleRangeSelect(selected);
                     }}
                     disabled={isLoading}
-                    className="px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                    className="px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all min-w-[180px]"
                   >
                     {rangeOptions.map((option) => (
                       <option key={option.label} value={option.label}>
@@ -77,11 +86,14 @@ const DashboardLayout = ({
                       </option>
                     ))}
                   </select>
-                  <span className="text-xs text-muted-foreground">
-                    Showing {dataRange.start + 1} -{" "}
-                    {Math.min(dataRange.end, totalRecords?.orders || 0)} of{" "}
-                    {totalRecords?.orders || 0} total orders
-                  </span>
+
+                  {rangeDisplay && (
+                    <div className="text-xs text-muted-foreground bg-secondary/50 px-3 py-2 rounded-lg">
+                      <Filter className="w-3 h-3 inline mr-1" />
+                      Showing {rangeDisplay.current} of {rangeDisplay.total}{" "}
+                      {rangeDisplay.label}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
