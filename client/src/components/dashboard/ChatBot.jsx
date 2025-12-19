@@ -1,3 +1,4 @@
+// components/ChatBot.js - Enhanced Version
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,18 +10,26 @@ import {
   Paper,
   Chip,
   CircularProgress,
+  LinearProgress,
+  Tooltip,
 } from "@mui/material";
 import {
   Close,
   SmartToy,
   AutoAwesome,
-  Insights,
   TrendingUp,
+  TrendingDown,
+  CheckCircle,
   Warning,
   Info,
-  CheckCircle,
-  Psychology,
+  Error,
+  Lightbulb,
   Analytics,
+  Psychology,
+  Speed,
+  AccountTree,
+  PieChart,
+  Timeline,
 } from "@mui/icons-material";
 
 const ChatBot = ({ insights = [], section = "overview" }) => {
@@ -28,159 +37,264 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
   const [isThinking, setIsThinking] = useState(false);
   const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
   const [chatHistory, setChatHistory] = useState([
     {
       id: 1,
       sender: "bot",
-      text: `Hello! I'm your AI Analytics Assistant. I'll analyze your ${section} data and provide insights.`,
-      timestamp: "Just now",
+      text: `🔍 **Analyzing ${section} data...**\nI'm processing your metrics to generate actionable insights. This will take a moment.`,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       isInsight: false,
+      isAnalyzing: true,
     },
   ]);
   const chatEndRef = useRef(null);
+  const thinkingIntervalRef = useRef(null);
 
   const sectionTitles = {
     overview: "Dashboard Overview",
     revenue: "Revenue & Orders",
-    products: "Products",
+    products: "Products Analysis",
     refunds: "Refund Analysis",
-    traffic: "Traffic & Analysis",
-    conversion: "Conversion Analysis",
+    traffic: "Traffic & Engagement",
+    conversion: "Conversion Optimization",
   };
 
-  // Typing effect for insights
+  const sectionIcons = {
+    overview: <Analytics />,
+    revenue: <TrendingUp />,
+    products: <PieChart />,
+    refunds: <Warning />,
+    traffic: <AccountTree />,
+    conversion: <Timeline />,
+  };
+
+  const getInsightIcon = (type) => {
+    switch (type.toLowerCase()) {
+      case "critical":
+      case "alert":
+        return <Error sx={{ color: "#EF4444", fontSize: 18 }} />;
+      case "warning":
+        return <Warning sx={{ color: "#F59E0B", fontSize: 18 }} />;
+      case "success":
+      case "excellent":
+        return <CheckCircle sx={{ color: "#10B981", fontSize: 18 }} />;
+      case "opportunity":
+        return <TrendingUp sx={{ color: "#8B5CF6", fontSize: 18 }} />;
+      case "info":
+        return <Info sx={{ color: "#3B82F6", fontSize: 18 }} />;
+      default:
+        return <Lightbulb sx={{ color: "#6B7280", fontSize: 18 }} />;
+    }
+  };
+
+  const getInsightColor = (type) => {
+    switch (type.toLowerCase()) {
+      case "critical":
+      case "alert":
+        return "#EF4444";
+      case "warning":
+        return "#F59E0B";
+      case "success":
+      case "excellent":
+        return "#10B981";
+      case "opportunity":
+        return "#8B5CF6";
+      case "info":
+        return "#3B82F6";
+      default:
+        return "#6B7280";
+    }
+  };
+
+  const getSeverityLevel = (type) => {
+    switch (type.toLowerCase()) {
+      case "critical":
+        return 5;
+      case "alert":
+        return 4;
+      case "warning":
+        return 3;
+      case "opportunity":
+        return 2;
+      case "info":
+        return 1;
+      case "success":
+      case "excellent":
+        return 0;
+      default:
+        return 1;
+    }
+  };
+
+  const simulateThinking = () => {
+    const thinkingMessages = [
+      "Analyzing data patterns...",
+      "Processing metrics...",
+      "Comparing against benchmarks...",
+      "Identifying opportunities...",
+      "Generating recommendations...",
+      "Calculating impact...",
+      "Finalizing insights...",
+    ];
+
+    let thoughtIndex = 0;
+    thinkingIntervalRef.current = setInterval(() => {
+      if (thoughtIndex < thinkingMessages.length) {
+        setChatHistory((prev) => {
+          const newHistory = prev.filter((msg) => !msg.isThinking);
+          return [
+            ...newHistory,
+            {
+              id: Date.now(),
+              sender: "bot",
+              text: thinkingMessages[thoughtIndex],
+              timestamp: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              isThinking: true,
+              isInsight: false,
+            },
+          ];
+        });
+        thoughtIndex++;
+      } else {
+        clearInterval(thinkingIntervalRef.current);
+      }
+    }, 800 + Math.random() * 1200);
+  };
+
+  const generateInsight = async (insight, index) => {
+    // Clear any thinking messages
+    setChatHistory((prev) => prev.filter((msg) => !msg.isThinking));
+
+    // Add analyzing message
+    const analyzingId = Date.now();
+    setChatHistory((prev) => [
+      ...prev,
+      {
+        id: analyzingId,
+        sender: "bot",
+        text: `🧠 **Processing Insight ${index + 1}/${insights.length}**\n*${
+          insight.title
+        }*`,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        isAnalyzing: true,
+        isInsight: false,
+      },
+    ]);
+
+    // Simulate analysis time based on severity
+    const analysisTime = getSeverityLevel(insight.type) * 500 + 1000;
+    await new Promise((resolve) => setTimeout(resolve, analysisTime));
+
+    // Remove analyzing message
+    setChatHistory((prev) => prev.filter((msg) => msg.id !== analyzingId));
+
+    // Start typing effect for the insight
+    setIsTyping(true);
+    const fullText = `## ${insight.title}\n\n**📊 Analysis:** ${
+      insight.message
+    }\n\n**🎯 Recommendation:** ${insight.recommendation}\n\n**⚡ Impact:** ${
+      insight.impact || "Significant"
+    }\n**⏱️ Timeframe:** ${insight.timeframe || "Next 30 days"}`;
+
+    let currentChar = 0;
+    const typingSpeed = 20; // ms per character
+
+    const typingInterval = setInterval(() => {
+      if (currentChar <= fullText.length) {
+        setDisplayedText(fullText.substring(0, currentChar));
+        currentChar++;
+      } else {
+        clearInterval(typingInterval);
+        setIsTyping(false);
+
+        // Add completed insight to chat
+        setChatHistory((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            sender: "bot",
+            text: fullText,
+            timestamp: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            type: insight.type,
+            isInsight: true,
+            title: insight.title,
+          },
+        ]);
+
+        setDisplayedText("");
+        setCurrentInsightIndex((prev) => prev + 1);
+      }
+    }, typingSpeed);
+
+    return () => clearInterval(typingInterval);
+  };
+
   useEffect(() => {
     if (!isOpen || !insights.length || currentInsightIndex >= insights.length)
       return;
 
-    const typeInsight = async () => {
+    if (!isThinking && !isTyping) {
       setIsThinking(true);
-      const insight = insights[currentInsightIndex];
+      simulateThinking();
 
-      // Simulate AI thinking delay
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000 + Math.random() * 2000)
-      );
+      // Start generating the next insight after thinking phase
+      setTimeout(async () => {
+        clearInterval(thinkingIntervalRef.current);
+        await generateInsight(
+          insights[currentInsightIndex],
+          currentInsightIndex
+        );
+        setIsThinking(false);
+      }, 5000 + Math.random() * 3000);
+    }
+  }, [isOpen, insights, currentInsightIndex, isThinking, isTyping]);
 
-      // Add insight with typing effect
-      const insightId = Date.now() + currentInsightIndex; // Unique ID
-      const fullText = `📊 **${insight.title}**\n\n${insight.message}\n\n💡 **Recommendation:** ${insight.recommendation}`;
-
-      // Start typing effect
-      let currentIndex = 0;
-      const typingInterval = setInterval(() => {
-        if (currentIndex <= fullText.length) {
-          setDisplayedText(fullText.substring(0, currentIndex));
-          currentIndex++;
-        } else {
-          clearInterval(typingInterval);
-          setIsThinking(false);
-
-          // Add completed insight to chat history
-          setChatHistory((prev) => [
-            ...prev,
-            {
-              id: insightId,
-              sender: "bot",
-              text: fullText,
-              timestamp: "Just now",
-              type: insight.type,
-              isInsight: true,
-            },
-          ]);
-
-          setCurrentInsightIndex((prev) => prev + 1);
-          setDisplayedText("");
-        }
-      }, 20);
-
-      return () => clearInterval(typingInterval);
-    };
-
-    typeInsight();
-  }, [isOpen, insights, currentInsightIndex]);
-
-  // Auto-scroll to bottom
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [chatHistory, displayedText]);
 
-  // Reset when section changes
   useEffect(() => {
-    setCurrentInsightIndex(0);
-    setDisplayedText("");
-    setIsThinking(false);
-    setChatHistory([
-      {
-        id: 1,
-        sender: "bot",
-        text: `Hello! I'm your AI Analytics Assistant. I'll analyze your ${section} data and provide insights.`,
-        timestamp: "Just now",
-        isInsight: false,
-      },
-    ]);
-  }, [section]);
+    return () => {
+      if (thinkingIntervalRef.current) {
+        clearInterval(thinkingIntervalRef.current);
+      }
+    };
+  }, []);
 
-  // Auto-start insights when chat opens
-  useEffect(() => {
-    if (
-      isOpen &&
-      insights.length > 0 &&
-      currentInsightIndex === 0 &&
-      !isThinking
-    ) {
-      // Start insights generation after a short delay
-      const timer = setTimeout(() => {
-        setCurrentInsightIndex(0);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, insights, currentInsightIndex, isThinking]);
-
-  const getInsightIcon = (type) => {
-    switch (type) {
-      case "success":
-        return <CheckCircle sx={{ color: "#10B981", fontSize: 16 }} />;
-      case "warning":
-        return <Warning sx={{ color: "#F59E0B", fontSize: 16 }} />;
-      case "alert":
-        return <Warning sx={{ color: "#EF4444", fontSize: 16 }} />;
-      case "info":
-        return <Info sx={{ color: "#3B82F6", fontSize: 16 }} />;
-      case "opportunity":
-        return <TrendingUp sx={{ color: "#8B5CF6", fontSize: 16 }} />;
-      default:
-        return <Insights sx={{ color: "#6B7280", fontSize: 16 }} />;
-    }
-  };
-
-  const getInsightColor = (type) => {
-    switch (type) {
-      case "success":
-        return "#10B981";
-      case "warning":
-        return "#F59E0B";
-      case "alert":
-        return "#EF4444";
-      case "info":
-        return "#3B82F6";
-      case "opportunity":
-        return "#8B5CF6";
-      default:
-        return "#6B7280";
-    }
+  // Calculate insights statistics
+  const insightsStats = {
+    total: insights.length,
+    critical: insights.filter(
+      (i) => i.type === "critical" || i.type === "alert"
+    ).length,
+    warnings: insights.filter((i) => i.type === "warning").length,
+    opportunities: insights.filter((i) => i.type === "opportunity").length,
+    completed: currentInsightIndex,
   };
 
   return (
     <>
-      {/* Bot Icon */}
+      {/* Floating Action Button */}
       <Box
         component={motion.div}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
+        transition={{ duration: 0.3, delay: 1 }}
         sx={{
           position: "fixed",
           bottom: 24,
@@ -188,26 +302,29 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
           zIndex: 9999,
         }}
       >
-        <IconButton
-          onClick={() => setIsOpen(!isOpen)}
-          sx={{
-            background: "linear-gradient(135deg, #603FEF 0%, #7D5FF3 100%)",
-            color: "#ffffff",
-            width: 56,
-            height: 56,
-            boxShadow: "0 8px 32px rgba(96, 63, 239, 0.4)",
-            "&:hover": {
-              background: "linear-gradient(135deg, #4A2FBD 0%, #603FEF 100%)",
-              transform: "scale(1.1)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          {isOpen ? <Close /> : <SmartToy />}
-        </IconButton>
+        <Tooltip title="AI Insights Assistant">
+          <IconButton
+            onClick={() => setIsOpen(!isOpen)}
+            sx={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              color: "#ffffff",
+              width: 60,
+              height: 60,
+              boxShadow: "0 10px 40px rgba(102, 126, 234, 0.4)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)",
+                transform: "scale(1.05)",
+                boxShadow: "0 15px 50px rgba(102, 126, 234, 0.6)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            {isOpen ? <Close /> : <SmartToy />}
+          </IconButton>
+        </Tooltip>
       </Box>
 
-      {/* Chat Area */}
+      {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
           <Box
@@ -220,9 +337,9 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
               position: "fixed",
               bottom: 100,
               right: 24,
-              width: { xs: "calc(100vw - 48px)", sm: 450 },
+              width: { xs: "calc(100vw - 48px)", sm: 500 },
               maxWidth: "calc(100vw - 48px)",
-              height: 500,
+              height: 600,
               maxHeight: "calc(100vh - 124px)",
               zIndex: 9998,
               overflow: "hidden",
@@ -234,9 +351,9 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
-                background: "rgba(18, 18, 24, 0.98)",
+                background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
                 backdropFilter: "blur(20px)",
-                border: "1px solid rgba(96, 63, 239, 0.3)",
+                border: "1px solid rgba(148, 163, 184, 0.1)",
                 borderRadius: 3,
                 overflow: "hidden",
               }}
@@ -245,46 +362,124 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
               <Box
                 sx={{
                   p: 2,
-                  background:
-                    "linear-gradient(135deg, #603FEF20 0%, #7D5FF320 100%)",
-                  borderBottom: "1px solid rgba(96, 63, 239, 0.2)",
+                  background: "rgba(30, 41, 59, 0.8)",
+                  borderBottom: "1px solid rgba(148, 163, 184, 0.1)",
+                  backdropFilter: "blur(10px)",
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Avatar
                     sx={{
                       background:
-                        "linear-gradient(135deg, #603FEF 0%, #7D5FF3 100%)",
+                        "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                      boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)",
                     }}
                   >
-                    <SmartToy />
+                    <Psychology />
                   </Avatar>
-                  <Box>
+                  <Box sx={{ flex: 1 }}>
                     <Typography
                       variant="h6"
-                      sx={{ color: "#ffffff", fontWeight: 600 }}
+                      sx={{
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: "1.1rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
                     >
-                      AI Insights Assistant
+                      {sectionIcons[section]}
+                      AI Analytics Assistant
                     </Typography>
                     <Typography
                       variant="caption"
-                      sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+                      sx={{
+                        color: "rgba(255, 255, 255, 0.7)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                      }}
                     >
+                      <Speed sx={{ fontSize: 12 }} />
                       Analyzing: {sectionTitles[section]}
                     </Typography>
                   </Box>
-                  <Chip
-                    icon={<AutoAwesome sx={{ fontSize: 14 }} />}
-                    label={`${insights.length} insights`}
-                    size="small"
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <Chip
+                      icon={<AutoAwesome sx={{ fontSize: 14 }} />}
+                      label={`${insightsStats.completed}/${insightsStats.total}`}
+                      size="small"
+                      sx={{
+                        background: "rgba(102, 126, 234, 0.15)",
+                        color: "#8193ff",
+                        border: "1px solid rgba(102, 126, 234, 0.3)",
+                        "& .MuiChip-icon": { color: "#8193ff" },
+                        fontSize: "0.7rem",
+                        height: 24,
+                      }}
+                    />
+                    {insightsStats.critical > 0 && (
+                      <Chip
+                        icon={<Error sx={{ fontSize: 14 }} />}
+                        label={insightsStats.critical}
+                        size="small"
+                        sx={{
+                          background: "rgba(239, 68, 68, 0.15)",
+                          color: "#f87171",
+                          border: "1px solid rgba(239, 68, 68, 0.3)",
+                          "& .MuiChip-icon": { color: "#f87171" },
+                          fontSize: "0.7rem",
+                          height: 24,
+                        }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Progress Bar */}
+                <Box sx={{ mt: 2 }}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={
+                      (insightsStats.completed / insightsStats.total) * 100
+                    }
                     sx={{
-                      ml: "auto",
-                      background: "rgba(96, 63, 239, 0.2)",
-                      color: "#7D5FF3",
-                      border: "1px solid rgba(96, 63, 239, 0.3)",
-                      "& .MuiChip-icon": { color: "#7D5FF3" },
+                      height: 6,
+                      borderRadius: 3,
+                      background: "rgba(255, 255, 255, 0.1)",
+                      "& .MuiLinearProgress-bar": {
+                        background:
+                          "linear-gradient(90deg, #667eea 0%, #764ba2 100%)",
+                        borderRadius: 3,
+                      },
                     }}
                   />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mt: 0.5,
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "rgba(255, 255, 255, 0.6)" }}
+                    >
+                      {insightsStats.completed === insightsStats.total
+                        ? "Analysis Complete"
+                        : "Generating Insights..."}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "rgba(255, 255, 255, 0.6)" }}
+                    >
+                      {Math.round(
+                        (insightsStats.completed / insightsStats.total) * 100
+                      )}
+                      %
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
 
@@ -298,7 +493,7 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
                   flexDirection: "column",
                   gap: 2,
                   background:
-                    "linear-gradient(180deg, rgba(18,18,24,0.9) 0%, rgba(30,30,40,0.9) 100%)",
+                    "linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)",
                 }}
               >
                 {chatHistory.map((msg) => (
@@ -327,24 +522,36 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
                           height: 32,
                           bgcolor:
                             msg.sender === "bot"
-                              ? "rgba(96, 63, 239, 0.2)"
-                              : "rgba(125, 95, 243, 0.2)",
+                              ? "rgba(102, 126, 234, 0.2)"
+                              : "rgba(148, 163, 184, 0.2)",
                           flexShrink: 0,
+                          mt: 0.5,
                         }}
                       >
                         {msg.sender === "bot" ? (
-                          <SmartToy sx={{ fontSize: 16 }} />
+                          msg.isThinking ? (
+                            <CircularProgress
+                              size={16}
+                              sx={{ color: "#8193ff" }}
+                            />
+                          ) : (
+                            <Psychology sx={{ fontSize: 16 }} />
+                          )
                         ) : (
-                          <Psychology sx={{ fontSize: 16 }} />
+                          <Analytics sx={{ fontSize: 16 }} />
                         )}
                       </Avatar>
                       <Paper
                         elevation={0}
                         sx={{
                           maxWidth: "85%",
-                          p: 2,
+                          p: msg.isThinking || msg.isAnalyzing ? 1.5 : 2,
                           borderRadius: 2,
-                          background: msg.isInsight
+                          background: msg.isThinking
+                            ? "rgba(102, 126, 234, 0.1)"
+                            : msg.isAnalyzing
+                            ? "rgba(59, 130, 246, 0.1)"
+                            : msg.isInsight
                             ? `rgba(${parseInt(
                                 getInsightColor(msg.type).slice(1, 3),
                                 16
@@ -355,9 +562,13 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
                                 getInsightColor(msg.type).slice(5, 7),
                                 16
                               )}, 0.1)`
-                            : "rgba(96, 63, 239, 0.1)",
+                            : "rgba(102, 126, 234, 0.1)",
                           border: "1px solid",
-                          borderColor: msg.isInsight
+                          borderColor: msg.isThinking
+                            ? "rgba(102, 126, 234, 0.2)"
+                            : msg.isAnalyzing
+                            ? "rgba(59, 130, 246, 0.2)"
+                            : msg.isInsight
                             ? `rgba(${parseInt(
                                 getInsightColor(msg.type).slice(1, 3),
                                 16
@@ -368,65 +579,113 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
                                 getInsightColor(msg.type).slice(5, 7),
                                 16
                               )}, 0.2)`
-                            : "rgba(96, 63, 239, 0.2)",
+                            : "rgba(102, 126, 234, 0.2)",
                           borderLeft: msg.isInsight
                             ? `4px solid ${getInsightColor(msg.type)}`
-                            : "1px solid rgba(96, 63, 239, 0.2)",
+                            : msg.isAnalyzing
+                            ? "4px solid #3B82F6"
+                            : "1px solid rgba(102, 126, 234, 0.2)",
+                          position: "relative",
+                          overflow: "hidden",
                         }}
                       >
-                        {msg.isInsight && (
+                        {msg.isThinking || msg.isAnalyzing ? (
                           <Box
                             sx={{
                               display: "flex",
                               alignItems: "center",
-                              gap: 1,
-                              mb: 1,
+                              gap: 1.5,
                             }}
                           >
-                            {getInsightIcon(msg.type)}
+                            <CircularProgress size={16} thickness={5} />
                             <Typography
-                              variant="caption"
+                              variant="body2"
                               sx={{
-                                color: getInsightColor(msg.type),
-                                fontWeight: 600,
-                                textTransform: "uppercase",
-                                letterSpacing: 0.5,
+                                color: msg.isAnalyzing
+                                  ? "#93c5fd"
+                                  : "rgba(255, 255, 255, 0.8)",
+                                fontStyle: msg.isThinking ? "italic" : "normal",
+                                fontWeight: msg.isAnalyzing ? 500 : 400,
                               }}
                             >
-                              {msg.type?.toUpperCase() || "INSIGHT"}
+                              {msg.text}
                             </Typography>
                           </Box>
+                        ) : (
+                          <>
+                            {msg.isInsight && (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                  mb: 1.5,
+                                }}
+                              >
+                                {getInsightIcon(msg.type)}
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: getInsightColor(msg.type),
+                                    fontWeight: 700,
+                                    textTransform: "uppercase",
+                                    letterSpacing: 1,
+                                    fontSize: "0.7rem",
+                                  }}
+                                >
+                                  {msg.type.toUpperCase()}
+                                </Typography>
+                                <Box sx={{ flex: 1 }} />
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: "rgba(255, 255, 255, 0.5)",
+                                    fontSize: "0.7rem",
+                                  }}
+                                >
+                                  {msg.timestamp}
+                                </Typography>
+                              </Box>
+                            )}
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: "#ffffff",
+                                lineHeight: 1.7,
+                                whiteSpace: "pre-line",
+                                "& h2": {
+                                  fontSize: "1.1rem",
+                                  fontWeight: 700,
+                                  color: msg.isInsight
+                                    ? getInsightColor(msg.type)
+                                    : "#8193ff",
+                                  mb: 1,
+                                  mt: 0,
+                                },
+                                "& strong": {
+                                  color: msg.isInsight
+                                    ? getInsightColor(msg.type)
+                                    : "#93c5fd",
+                                  fontWeight: 600,
+                                },
+                                "& em": {
+                                  color: "rgba(255, 255, 255, 0.7)",
+                                  fontStyle: "italic",
+                                },
+                              }}
+                              dangerouslySetInnerHTML={{
+                                __html: msg.text
+                                  .replace(/## (.*?)\n/g, "<h2>$1</h2>")
+                                  .replace(
+                                    /\*\*(.*?)\*\*/g,
+                                    "<strong>$1</strong>"
+                                  )
+                                  .replace(/\*(.*?)\*/g, "<em>$1</em>")
+                                  .replace(/\n/g, "<br/>"),
+                              }}
+                            />
+                          </>
                         )}
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: "#ffffff",
-                            lineHeight: 1.6,
-                            whiteSpace: "pre-line",
-                            "& strong": {
-                              color: msg.isInsight
-                                ? getInsightColor(msg.type)
-                                : "#7D5FF3",
-                            },
-                          }}
-                          dangerouslySetInnerHTML={{
-                            __html: msg.text.replace(
-                              /\*\*(.*?)\*\*/g,
-                              "<strong>$1</strong>"
-                            ),
-                          }}
-                        />
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            display: "block",
-                            mt: 1,
-                            color: "rgba(255, 255, 255, 0.5)",
-                            textAlign: "right",
-                          }}
-                        >
-                          {msg.timestamp}
-                        </Typography>
                       </Paper>
                     </Box>
                   </Box>
@@ -448,10 +707,11 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
                         sx={{
                           width: 32,
                           height: 32,
-                          bgcolor: "rgba(96, 63, 239, 0.2)",
+                          bgcolor: "rgba(102, 126, 234, 0.2)",
+                          mt: 0.5,
                         }}
                       >
-                        <SmartToy sx={{ fontSize: 16 }} />
+                        <Psychology sx={{ fontSize: 16 }} />
                       </Avatar>
                       <Paper
                         elevation={0}
@@ -459,114 +719,168 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
                           maxWidth: "85%",
                           p: 2,
                           borderRadius: 2,
-                          background: "rgba(96, 63, 239, 0.1)",
-                          border: "1px solid rgba(96, 63, 239, 0.2)",
-                          borderLeft: "4px solid #7D5FF3",
+                          background: "rgba(102, 126, 234, 0.1)",
+                          border: "1px solid rgba(102, 126, 234, 0.2)",
+                          borderLeft: "4px solid #667eea",
                         }}
                       >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            mb: 1,
-                          }}
-                        >
-                          {getInsightIcon(
-                            insights[currentInsightIndex]?.type || "info"
-                          )}
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: getInsightColor(
-                                insights[currentInsightIndex]?.type || "info"
-                              ),
-                              fontWeight: 600,
-                              textTransform: "uppercase",
-                              letterSpacing: 0.5,
-                            }}
-                          >
-                            {insights[
-                              currentInsightIndex
-                            ]?.type?.toUpperCase() || "INSIGHT"}
-                          </Typography>
-                        </Box>
                         <Typography
                           variant="body2"
                           sx={{
                             color: "#ffffff",
-                            lineHeight: 1.6,
+                            lineHeight: 1.7,
                             whiteSpace: "pre-line",
+                            "& h2": {
+                              fontSize: "1.1rem",
+                              fontWeight: 700,
+                              color: "#8193ff",
+                              mb: 1,
+                              mt: 0,
+                            },
+                            "& strong": {
+                              color: "#93c5fd",
+                              fontWeight: 600,
+                            },
                           }}
-                        >
-                          {displayedText}
-                          <Box
-                            component="span"
-                            sx={{
-                              display: "inline-block",
-                              width: 8,
-                              height: 16,
-                              ml: 0.5,
-                              bgcolor: "#7D5FF3",
-                              animation: "blink 1s infinite",
-                              "@keyframes blink": {
-                                "0%, 100%": { opacity: 1 },
-                                "50%": { opacity: 0 },
-                              },
-                            }}
-                          />
-                        </Typography>
+                          dangerouslySetInnerHTML={{
+                            __html: displayedText
+                              .replace(/## (.*?)\n/g, "<h2>$1</h2>")
+                              .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                              .replace(/\n/g, "<br/>"),
+                          }}
+                        />
+                        <Box
+                          component="span"
+                          sx={{
+                            display: "inline-block",
+                            width: 8,
+                            height: 16,
+                            ml: 0.5,
+                            bgcolor: "#8193ff",
+                            animation: "blink 1s infinite",
+                            "@keyframes blink": {
+                              "0%, 100%": { opacity: 1 },
+                              "50%": { opacity: 0 },
+                            },
+                          }}
+                        />
                       </Paper>
                     </Box>
                   </Box>
                 )}
 
-                {/* Insights Progress */}
-                {insights.length > 0 && (
-                  <Box sx={{ mt: 2, px: 1 }}>
-                    <Typography
-                      variant="caption"
+                {/* Insights Summary */}
+                {insightsStats.completed === insightsStats.total &&
+                  insightsStats.total > 0 && (
+                    <Box
+                      component={motion.div}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
                       sx={{
-                        color: "rgba(255, 255, 255, 0.7)",
-                        mb: 1,
-                        display: "block",
+                        mt: 2,
+                        p: 2,
+                        background: "rgba(30, 41, 59, 0.5)",
+                        borderRadius: 2,
+                        border: "1px solid rgba(148, 163, 184, 0.1)",
                       }}
                     >
-                      Insights Generated: {currentInsightIndex} of{" "}
-                      {insights.length}
-                    </Typography>
-                    <Box sx={{ display: "flex", gap: 0.5 }}>
-                      {insights.map((insight, index) => (
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          color: "#ffffff",
+                          fontWeight: 600,
+                          mb: 1.5,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <CheckCircle sx={{ color: "#10B981", fontSize: 18 }} />
+                        Analysis Complete
+                      </Typography>
+                      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                         <Box
-                          key={index}
-                          sx={{
-                            flex: 1,
-                            height: 4,
-                            borderRadius: 2,
-                            bgcolor:
-                              index < currentInsightIndex
-                                ? getInsightColor(insight.type)
-                                : index === currentInsightIndex
-                                ? isThinking
-                                  ? getInsightColor(insight.type)
-                                  : "rgba(255, 255, 255, 0.3)"
-                                : "rgba(255, 255, 255, 0.1)",
-                          }}
-                        />
-                      ))}
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Box
+                            sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: "50%",
+                              bgcolor: "#EF4444",
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "rgba(255, 255, 255, 0.8)" }}
+                          >
+                            {insightsStats.critical} Critical
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Box
+                            sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: "50%",
+                              bgcolor: "#F59E0B",
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "rgba(255, 255, 255, 0.8)" }}
+                          >
+                            {insightsStats.warnings} Warnings
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Box
+                            sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: "50%",
+                              bgcolor: "#8B5CF6",
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "rgba(255, 255, 255, 0.8)" }}
+                          >
+                            {insightsStats.opportunities} Opportunities
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "rgba(255, 255, 255, 0.6)",
+                          mt: 1.5,
+                          display: "block",
+                        }}
+                      >
+                        {insightsStats.critical > 0
+                          ? "⚠️ Address critical issues immediately for business continuity."
+                          : insightsStats.warnings > 0
+                          ? "📈 Focus on warnings to optimize performance."
+                          : "🎉 Great job! Focus on opportunities for growth."}
+                      </Typography>
                     </Box>
-                  </Box>
-                )}
+                  )}
 
                 <div ref={chatEndRef} />
               </Box>
 
-              {/* Status Footer */}
+              {/* Footer Status */}
               <Box
                 sx={{
                   p: 1.5,
-                  borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-                  background: "rgba(18, 18, 24, 0.9)",
+                  borderTop: "1px solid rgba(148, 163, 184, 0.1)",
+                  background: "rgba(15, 23, 42, 0.9)",
+                  backdropFilter: "blur(10px)",
                 }}
               >
                 <Box
@@ -579,42 +893,85 @@ const ChatBot = ({ insights = [], section = "overview" }) => {
                   <Typography
                     variant="caption"
                     sx={{
-                      color: "rgba(255, 255, 255, 0.6)",
+                      color: "rgba(255, 255, 255, 0.7)",
                       display: "flex",
                       alignItems: "center",
-                      gap: 0.5,
+                      gap: 1,
                     }}
                   >
                     {isThinking ? (
                       <>
                         <CircularProgress size={12} thickness={5} />
-                        Generating insight {currentInsightIndex + 1} of{" "}
-                        {insights.length}...
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 4,
+                              height: 4,
+                              borderRadius: "50%",
+                              bgcolor: "#8193ff",
+                              animation: "pulse 1s infinite",
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              width: 4,
+                              height: 4,
+                              borderRadius: "50%",
+                              bgcolor: "#8193ff",
+                              animation: "pulse 1s infinite 0.2s",
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              width: 4,
+                              height: 4,
+                              borderRadius: "50%",
+                              bgcolor: "#8193ff",
+                              animation: "pulse 1s infinite 0.4s",
+                            }}
+                          />
+                        </Box>
+                        Analyzing data patterns...
                       </>
-                    ) : currentInsightIndex < insights.length ? (
+                    ) : isTyping ? (
                       <>
-                        <AutoAwesome sx={{ fontSize: 12 }} />
-                        Ready for next insight...
+                        <Box
+                          sx={{
+                            width: 12,
+                            height: 12,
+                            borderRadius: "50%",
+                            bgcolor: "#8193ff",
+                            animation: "pulse 1s infinite",
+                          }}
+                        />
+                        Generating insight {currentInsightIndex + 1}...
                       </>
-                    ) : insights.length > 0 ? (
+                    ) : insightsStats.completed === insightsStats.total ? (
                       <>
                         <CheckCircle sx={{ fontSize: 12, color: "#10B981" }} />
-                        All {insights.length} insights generated
+                        All insights generated
                       </>
                     ) : (
                       <>
-                        <Analytics sx={{ fontSize: 12 }} />
-                        Analyzing data...
+                        <AutoAwesome sx={{ fontSize: 12, color: "#8193ff" }} />
+                        Ready for analysis
                       </>
                     )}
                   </Typography>
                   <Typography
                     variant="caption"
                     sx={{
-                      color: "rgba(255, 255, 255, 0.6)",
+                      color: "rgba(255, 255, 255, 0.5)",
+                      fontFamily: "monospace",
                     }}
                   >
-                    AI Powered
+                    AI v2.1
                   </Typography>
                 </Box>
               </Box>
