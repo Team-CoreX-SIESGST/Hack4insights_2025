@@ -14,6 +14,7 @@ import {
   calculateAOV,
   getRefundsByProduct,
   getOrdersByProduct,
+  sortByDate,
 } from "@/utils/dataCleaners";
 
 // Import JSON data
@@ -24,6 +25,14 @@ import productsRaw from "../../public/data/products.json";
 import sessionsRaw from "../../public/data/website_sessions.json";
 import pageviewsRaw from "../../public/data/website_pageviews.json";
 
+// Pre-sort and clean static data once
+const preSortedOrders = sortByDate(ordersRaw);
+const preSortedOrderItems = sortByDate(orderItemsRaw);
+const preSortedRefunds = sortByDate(refundsRaw);
+const preSortedProducts = sortByDate(productsRaw);
+const preSortedSessions = sortByDate(sessionsRaw);
+const preSortedPageviews = sortByDate(pageviewsRaw);
+
 const useDashboardData = (activeSection = "overview") => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,12 +41,12 @@ const useDashboardData = (activeSection = "overview") => {
   // Get total records for each dataset
   const totalRecords = useMemo(
     () => ({
-      orders: ordersRaw?.length || 0,
-      sessions: sessionsRaw?.length || 0,
-      orderItems: orderItemsRaw?.length || 0,
-      refunds: refundsRaw?.length || 0,
-      products: productsRaw?.length || 0,
-      pageviews: pageviewsRaw?.length || 0,
+      orders: preSortedOrders?.length || 0,
+      sessions: preSortedSessions?.length || 0,
+      orderItems: preSortedOrderItems?.length || 0,
+      refunds: preSortedRefunds?.length || 0,
+      products: preSortedProducts?.length || 0,
+      pageviews: preSortedPageviews?.length || 0,
     }),
     []
   );
@@ -49,13 +58,13 @@ const useDashboardData = (activeSection = "overview") => {
       case "revenue":
       case "refunds":
       case "products":
-        return totalRecords.orders; // Order-based sections
+        return totalRecords.orders;
       case "traffic":
-        return totalRecords.sessions; // Session-based section
+        return totalRecords.sessions;
       case "conversion":
-        return Math.min(totalRecords.sessions, totalRecords.orders); // Mixed, use smaller one
+        return Math.min(totalRecords.sessions, totalRecords.orders);
       case "ask_ai":
-        return 0; // AI section doesn't need pagination
+        return 0;
       default:
         return totalRecords.orders;
     }
@@ -78,7 +87,6 @@ const useDashboardData = (activeSection = "overview") => {
       });
     }
 
-    // If we have less than chunkSize data, still add one range
     if (ranges.length === 0 && activeLength > 0) {
       ranges.push({
         label: `0 - ${activeLength}`,
@@ -90,108 +98,119 @@ const useDashboardData = (activeSection = "overview") => {
     return ranges;
   }, [getActiveDatasetLength]);
 
-  // Clean and process data with proper error handling and range limiting
+  // Create lookup maps for efficient filtering
+  const orderLookupMaps = useMemo(() => {
+    // Create maps for quick lookups
+    const orderIdToSessionId = new Map();
+    const sessionIdToOrderIds = new Map();
+
+    preSortedOrders.forEach((order) => {
+      orderIdToSessionId.set(order.order_id, order.website_session_id);
+
+      if (!sessionIdToOrderIds.has(order.website_session_id)) {
+        sessionIdToOrderIds.set(order.website_session_id, new Set());
+      }
+      sessionIdToOrderIds.get(order.website_session_id).add(order.order_id);
+    });
+
+    return { orderIdToSessionId, sessionIdToOrderIds };
+  }, []);
+
+  // Clean and process data with optimization
   const processedData = useMemo(() => {
     try {
-      console.log("Processing data for section:", activeSection);
-      console.log("Current range:", dataRange);
+      console.time("Data processing");
 
-      // Helper function to sort by date
-      const sortByDate = (a, b) => {
-        try {
-          return new Date(a.created_at) - new Date(b.created_at);
-        } catch (e) {
-          return 0;
-        }
-      };
+      let orders, orderItems, refunds, products, sessions, pageviews;
 
-      // Slice orders based on range
-      const ordersSliced = [...ordersRaw]
-        .sort(sortByDate)
-        .slice(dataRange.start, dataRange.end);
-
-      // Get order IDs from sliced orders
-      const slicedOrderIds = new Set(ordersSliced.map((o) => o.order_id));
-      const slicedSessionIds = new Set(
-        ordersSliced.map((o) => o.website_session_id)
-      );
-
-      // For traffic section, slice sessions instead
-      let sessionsSliced;
       if (activeSection === "traffic") {
-        sessionsSliced = [...sessionsRaw]
-          .sort(sortByDate)
-          .slice(dataRange.start, dataRange.end);
-
-        const sessionIds = new Set(
-          sessionsSliced.map((s) => s.website_session_id)
+        // For traffic section, slice sessions
+        const sessionsSlice = preSortedSessions.slice(
+          dataRange.start,
+          dataRange.end
         );
 
-        // Filter related data based on session IDs
-        const ordersSlicedBySession = [...ordersRaw]
-          .sort(sortByDate)
-          .filter((order) => sessionIds.has(order.website_session_id));
+        // Get session IDs from sliced sessions
+        const sessionIds = new Set(
+          sessionsSlice.map((s) => s.website_session_id)
+        );
 
-        const orderIds = new Set(ordersSlicedBySession.map((o) => o.order_id));
-
-        const orderItemsSliced = [...orderItemsRaw]
-          .sort(sortByDate)
-          .filter((item) => orderIds.has(item.order_id));
-
-        const refundsSliced = [...refundsRaw]
-          .sort(sortByDate)
-          .filter((refund) => orderIds.has(refund.order_id));
-
-        const pageviewsSliced = [...pageviewsRaw]
-          .sort(sortByDate)
-          .filter((pv) => sessionIds.has(pv.website_session_id));
-
-        const orders = cleanOrdersData(ordersSlicedBySession);
-        const orderItems = cleanOrderItemsData(orderItemsSliced);
-        const refunds = cleanRefundsData(refundsSliced);
-        const products = cleanProductsData(productsRaw);
-        const sessions = cleanSessionsData(sessionsSliced);
-        const pageviews = cleanPageviewsData(pageviewsSliced);
-
-        return { orders, orderItems, refunds, products, sessions, pageviews };
-      } else {
-        // For other sections, filter related data based on order IDs
-        const orderItemsSliced = [...orderItemsRaw]
-          .sort(sortByDate)
-          .filter((item) => slicedOrderIds.has(item.order_id));
-
-        const refundsSliced = [...refundsRaw]
-          .sort(sortByDate)
-          .filter((refund) => slicedOrderIds.has(refund.order_id));
-
-        const sessionsSliced = [...sessionsRaw]
-          .sort(sortByDate)
-          .filter((session) =>
-            slicedSessionIds.has(session.website_session_id)
-          );
-
-        const pageviewsSliced = [...pageviewsRaw]
-          .sort(sortByDate)
-          .filter((pv) => slicedSessionIds.has(pv.website_session_id));
-
-        const orders = cleanOrdersData(ordersSliced);
-        const orderItems = cleanOrderItemsData(orderItemsSliced);
-        const refunds = cleanRefundsData(refundsSliced);
-        const products = cleanProductsData(productsRaw);
-        const sessions = cleanSessionsData(sessionsSliced);
-        const pageviews = cleanPageviewsData(pageviewsSliced);
-
-        console.log("Data processed successfully:", {
-          orders: orders.length,
-          orderItems: orderItems.length,
-          refunds: refunds.length,
-          products: products.length,
-          sessions: sessions.length,
-          pageviews: pageviews.length,
+        // Get orders for these sessions using the lookup map
+        const orderIds = new Set();
+        sessionIds.forEach((sessionId) => {
+          const ordersForSession =
+            orderLookupMaps.sessionIdToOrderIds.get(sessionId);
+          if (ordersForSession) {
+            ordersForSession.forEach((orderId) => orderIds.add(orderId));
+          }
         });
 
-        return { orders, orderItems, refunds, products, sessions, pageviews };
+        // Filter related data efficiently
+        const ordersFiltered = preSortedOrders.filter((order) =>
+          orderIds.has(order.order_id)
+        );
+        const orderItemsFiltered = preSortedOrderItems.filter((item) =>
+          orderIds.has(item.order_id)
+        );
+        const refundsFiltered = preSortedRefunds.filter((refund) =>
+          orderIds.has(refund.order_id)
+        );
+        const pageviewsFiltered = preSortedPageviews.filter((pv) =>
+          sessionIds.has(pv.website_session_id)
+        );
+
+        orders = cleanOrdersData(ordersFiltered);
+        orderItems = cleanOrderItemsData(orderItemsFiltered);
+        refunds = cleanRefundsData(refundsFiltered);
+        products = cleanProductsData(preSortedProducts);
+        sessions = cleanSessionsData(sessionsSlice);
+        pageviews = cleanPageviewsData(pageviewsFiltered);
+      } else {
+        // For other sections, slice orders
+        const ordersSlice = preSortedOrders.slice(
+          dataRange.start,
+          dataRange.end
+        );
+
+        // Get order IDs and session IDs from sliced orders
+        const orderIds = new Set(ordersSlice.map((o) => o.order_id));
+        const sessionIds = new Set(
+          ordersSlice.map((o) => o.website_session_id)
+        );
+
+        // Filter related data efficiently
+        const orderItemsFiltered = preSortedOrderItems.filter((item) =>
+          orderIds.has(item.order_id)
+        );
+        const refundsFiltered = preSortedRefunds.filter((refund) =>
+          orderIds.has(refund.order_id)
+        );
+        const sessionsFiltered = preSortedSessions.filter((session) =>
+          sessionIds.has(session.website_session_id)
+        );
+        const pageviewsFiltered = preSortedPageviews.filter((pv) =>
+          sessionIds.has(pv.website_session_id)
+        );
+
+        orders = cleanOrdersData(ordersSlice);
+        orderItems = cleanOrderItemsData(orderItemsFiltered);
+        refunds = cleanRefundsData(refundsFiltered);
+        products = cleanProductsData(preSortedProducts);
+        sessions = cleanSessionsData(sessionsFiltered);
+        pageviews = cleanPageviewsData(pageviewsFiltered);
       }
+
+      console.timeEnd("Data processing");
+      console.log("Data processed successfully:", {
+        orders: orders.length,
+        orderItems: orderItems.length,
+        refunds: refunds.length,
+        products: products.length,
+        sessions: sessions.length,
+        pageviews: pageviews.length,
+      });
+
+      return { orders, orderItems, refunds, products, sessions, pageviews };
     } catch (err) {
       console.error("Error processing data:", err);
       setError(err.message || "Failed to process data");
@@ -204,7 +223,7 @@ const useDashboardData = (activeSection = "overview") => {
         pageviews: [],
       };
     }
-  }, [dataRange, activeSection]);
+  }, [dataRange, activeSection, orderLookupMaps]);
 
   const { orders, orderItems, refunds, products, sessions, pageviews } =
     processedData;
@@ -242,72 +261,43 @@ const useDashboardData = (activeSection = "overview") => {
         totalProducts: 0,
       };
     }
-  }, [orders, refunds, sessions, pageviews]);
+  }, [orders, refunds, sessions, pageviews, products.length]);
 
-  // Aggregate data for charts
+  // Aggregate data for charts - memoized separately
   const revenueByMonth = useMemo(() => {
-    try {
-      return aggregateRevenueByMonth(orders);
-    } catch (err) {
-      console.error("Error aggregating revenue by month:", err);
-      return [];
-    }
+    return aggregateRevenueByMonth(orders);
   }, [orders]);
 
   const revenueByYear = useMemo(() => {
-    try {
-      return aggregateRevenueByYear(orders);
-    } catch (err) {
-      console.error("Error aggregating revenue by year:", err);
-      return [];
-    }
+    return aggregateRevenueByYear(orders);
   }, [orders]);
 
   const refundsByProduct = useMemo(() => {
-    try {
-      return getRefundsByProduct(refunds, orderItems, products);
-    } catch (err) {
-      console.error("Error calculating refunds by product:", err);
-      return [];
-    }
+    return getRefundsByProduct(refunds, orderItems, products);
   }, [refunds, orderItems, products]);
 
   const ordersByProduct = useMemo(() => {
-    try {
-      return getOrdersByProduct(orderItems, products);
-    } catch (err) {
-      console.error("Error calculating orders by product:", err);
-      return [];
-    }
+    return getOrdersByProduct(orderItems, products);
   }, [orderItems, products]);
 
+  // Handle section changes
   useEffect(() => {
-    // Reset to first page when section changes
-    setDataRange({ start: 0, end: 1000 });
     setIsLoading(true);
+    // Use requestAnimationFrame to ensure UI updates smoothly
+    requestAnimationFrame(() => {
+      setDataRange({ start: 0, end: 1000 });
+      setIsLoading(false);
+    });
   }, [activeSection]);
 
-  useEffect(() => {
-    // Simulate loading state and validate data
-    const timer = setTimeout(() => {
-      if (orders.length === 0 && ordersRaw.length > 0) {
-        setError("Failed to load order data");
-      } else if (sessions.length === 0 && sessionsRaw.length > 0) {
-        setError("Failed to load session data");
-      } else if (error) {
-        // Error was already set during processing
-      } else {
-        setError(null);
-      }
-      setIsLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [orders.length, sessions.length, error]);
-
+  // Handle range changes
   const handleRangeChange = (start, end) => {
     setIsLoading(true);
-    setDataRange({ start, end });
+    // Use requestAnimationFrame for smoother UI updates
+    requestAnimationFrame(() => {
+      setDataRange({ start, end });
+      setIsLoading(false);
+    });
   };
 
   // Get current range display text
