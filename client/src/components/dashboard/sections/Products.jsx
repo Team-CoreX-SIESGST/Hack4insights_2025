@@ -1,3 +1,5 @@
+"use client";
+
 import { Package, DollarSign, ShoppingCart, Calendar } from "lucide-react";
 import ProductPieChart from "../charts/ProductPieChart";
 import ChartInsight from "../ChatInsight";
@@ -9,6 +11,7 @@ import {
   analyzeProductRefundRate,
 } from "@/utils/insightEngine";
 import ChatBot from "../ChatBot";
+import { generateProductInsights } from "@/utils/insightGenerator";
 
 const ProductsSection = ({
   products,
@@ -72,6 +75,18 @@ const ProductsSection = ({
     (a, b) => (b.revenue || 0) - (a.revenue || 0)
   )[0];
 
+  // Generate insights for ChatBot
+  const productMetrics = {
+    avgRefundRate,
+    topProduct: topProduct?.product,
+    topProductPercent:
+      topProduct && totalRevenue > 0
+        ? ((topProduct.revenue / totalRevenue) * 100).toFixed(0)
+        : "0",
+  };
+
+  const productInsights = generateProductInsights(productMetrics);
+
   const rangeDisplay = getCurrentRangeDisplay ? getCurrentRangeDisplay() : null;
 
   return (
@@ -86,14 +101,14 @@ const ProductsSection = ({
             Product performance and catalog overview
           </p>
         </div>
-        <RangeSelector
+        {/* <RangeSelector
           dataRange={dataRange}
           setDataRange={setDataRange}
           rangeOptions={rangeOptions}
           totalRecords={totalRecords}
           getCurrentRangeDisplay={getCurrentRangeDisplay}
           activeSection="products"
-        />
+        /> */}
       </div>
 
       {/* Data Range Info */}
@@ -209,7 +224,10 @@ const ProductsSection = ({
           />
         </div>
       </div>
-      <ChatBot/>
+
+      {/* AI ChatBot with Insights */}
+      <ChatBot insights={productInsights} section="products" />
+
       {/* AI-Powered Recommendations */}
       <AIRecommendations
         sectionType="products"

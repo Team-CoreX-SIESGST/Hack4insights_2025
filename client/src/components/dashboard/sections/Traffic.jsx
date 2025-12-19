@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Users,
   Monitor,
@@ -21,7 +23,9 @@ import {
   analyzeLandingPages,
   analyzeBounceRate,
 } from "@/utils/insightEngine";
-import ChatBot from "../ChatBot"; 
+import ChatBot from "../ChatBot";
+import { generateTrafficInsights } from "@/utils/insightGenerator";
+
 const TrafficSection = ({
   sessions,
   pageviews,
@@ -157,6 +161,19 @@ const TrafficSection = ({
 
   const metrics = calculateMetrics();
 
+  // Generate insights for ChatBot
+  const trafficMetrics = {
+    bounceRate: metrics.bounceRate,
+    mobilePercent:
+      ((metrics.deviceCounts.mobile || 0) / metrics.totalSessions) * 100,
+    desktopPercent:
+      ((metrics.deviceCounts.desktop || 0) / metrics.totalSessions) * 100,
+    returningRate: (metrics.returningSessions / metrics.totalSessions) * 100,
+    avgPagesPerSession: metrics.avgPagesPerSession,
+  };
+
+  const trafficInsights = generateTrafficInsights(trafficMetrics);
+
   // Generate insights for each chart
   const timelineInsight = analyzeTimelineData(metrics.timelineData);
   const sourceInsight = analyzeSourceData(metrics.sourceData);
@@ -188,14 +205,14 @@ const TrafficSection = ({
             Monitor website traffic and user behavior
           </p>
         </div>
-        <RangeSelector
+        {/* <RangeSelector
           dataRange={dataRange}
           setDataRange={setDataRange}
           rangeOptions={rangeOptions}
           totalRecords={totalRecords}
           getCurrentRangeDisplay={getCurrentRangeDisplay}
           activeSection="traffic"
-        />
+        /> */}
       </div>
 
       {/* Data Range Info */}
@@ -438,7 +455,10 @@ const TrafficSection = ({
           />
         </div>
       </div>
-      <ChatBot/>
+
+      {/* AI ChatBot with Insights */}
+      <ChatBot insights={trafficInsights} section="traffic" />
+
       {/* AI-Powered Recommendations */}
       <AIRecommendations
         sectionType="traffic"

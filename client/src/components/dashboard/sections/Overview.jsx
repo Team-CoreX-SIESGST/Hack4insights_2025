@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import {
   DollarSign,
   ShoppingCart,
@@ -17,6 +17,7 @@ import {
   formatNumber,
 } from "@/utils/dataCleaners";
 import ChatBot from "../ChatBot";
+import { generateOverviewInsights } from "@/utils/insightGenerator";
 
 const OverviewSection = ({
   metrics,
@@ -30,6 +31,9 @@ const OverviewSection = ({
 }) => {
   const rangeDisplay = getCurrentRangeDisplay ? getCurrentRangeDisplay() : null;
 
+  // Generate insights for overview section
+  const overviewInsights = generateOverviewInsights(metrics);
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Page Header with Range Selector */}
@@ -42,14 +46,14 @@ const OverviewSection = ({
             Your business performance at a glance
           </p>
         </div>
-        <RangeSelector
+        {/* <RangeSelector
           dataRange={dataRange}
           setDataRange={setDataRange}
           rangeOptions={rangeOptions}
           totalRecords={totalRecords}
           getCurrentRangeDisplay={getCurrentRangeDisplay}
           activeSection="overview"
-        />
+        /> */}
       </div>
 
       {/* Data Range Info */}
@@ -121,7 +125,10 @@ const OverviewSection = ({
           icon={<TrendingUp className="w-4 h-4" />}
         />
       </div>
-      <ChatBot />
+
+      {/* AI ChatBot with Insights */}
+      <ChatBot insights={overviewInsights} section="overview" />
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RevenueChart data={revenueByMonth} />

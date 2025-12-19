@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ShoppingCart,
   TrendingUp,
@@ -28,6 +30,8 @@ import {
   analyzeRevenueMetrics,
 } from "@/utils/insightEngine";
 import ChatBot from "../ChatBot";
+import { generateConversionInsights } from "@/utils/insightGenerator";
+
 const ConversionSection = ({
   sessions = [],
   orders = [],
@@ -294,7 +298,10 @@ const ConversionSection = ({
 
   const metrics = calculateMetrics();
 
-  // Generate insights
+  // Generate insights for ChatBot
+  const conversionInsights = generateConversionInsights(metrics);
+
+  // Generate insights for chart
   const timelineInsight = analyzeConversionTimeline(metrics.timelineData);
   const funnelInsight = analyzeConversionFunnel(metrics.funnelData);
   const sourceInsight = analyzeSourceConversion(metrics.sourceData);
@@ -326,14 +333,13 @@ const ConversionSection = ({
             Track conversion performance and optimize your funnel
           </p>
         </div>
-        <RangeSelector
+        {/* <RangeSelector
           dataRange={dataRange}
           setDataRange={setDataRange}
           rangeOptions={rangeOptions}
           totalRecords={totalRecords}
-          getCurrentRangeDisplay={getCurrentRangeDisplay}
-          activeSection="conversion"
-        />
+          getCurrentDateRangeDisplay={getCurrentDateRangeDisplay}
+        /> */}
       </div>
 
       {/* Data Range Info */}
@@ -619,107 +625,10 @@ const ConversionSection = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold font-display text-foreground mb-6">
-            Product Performance
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                    Product
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
-                    Orders
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
-                    Revenue
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
-                    Margin
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {metrics.productData
-                  .sort((a, b) => b.revenue - a.revenue)
-                  .map((item, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-border/50 hover:bg-secondary/30 transition-colors"
-                    >
-                      <td className="py-3 px-4 text-sm text-foreground font-medium">
-                        {item.productName}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-foreground text-right">
-                        {formatNumber(item.orders)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-foreground text-right">
-                        {formatCurrency(item.revenue)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground text-right">
-                        {formatPercentage(item.profitMargin)}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      {/* AI ChatBot with Insights */}
+      <ChatBot insights={conversionInsights} section="conversion" />
 
-        <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold font-display text-foreground mb-6">
-            Top Converting Landing Pages
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                    Page
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
-                    Sessions
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
-                    Orders
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
-                    Conv Rate
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {metrics.landingPageData
-                  .filter((item) => item.sessions >= 10)
-                  .slice(0, 5)
-                  .map((item, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-border/50 hover:bg-secondary/30 transition-colors"
-                    >
-                      <td className="py-3 px-4 text-sm text-foreground font-mono text-xs">
-                        {item.url}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-foreground text-right">
-                        {formatNumber(item.sessions)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-foreground text-right">
-                        {formatNumber(item.conversions)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground text-right">
-                        {formatPercentage(item.conversionRate)}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <ChatBot />
+      {/* AI-Powered Recommendations */}
       <AIRecommendations
         sectionType="conversion"
         metrics={{

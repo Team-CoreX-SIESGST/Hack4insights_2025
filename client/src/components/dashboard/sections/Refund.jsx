@@ -1,3 +1,5 @@
+"use client";
+
 import { RotateCcw, DollarSign, AlertTriangle, Package } from "lucide-react";
 import KpiCard from "../KpiCard";
 import RefundChart from "../charts/RefundChart";
@@ -14,6 +16,7 @@ import {
   analyzeRefundByProduct,
 } from "@/utils/insightEngine";
 import ChatBot from "../ChatBot";
+import { generateRefundInsights } from "@/utils/insightGenerator";
 
 const RefundSection = ({
   metrics,
@@ -35,6 +38,16 @@ const RefundSection = ({
   );
   const refundByProductInsight = analyzeRefundByProduct(refundsByProduct);
 
+  // Generate insights for ChatBot
+  const refundMetrics = {
+    refundRate: metrics.refundRate,
+    totalRefunds: metrics.totalRefunds,
+    avgRefundValue,
+    totalRefundCount,
+  };
+
+  const refundInsights = generateRefundInsights(refundMetrics);
+
   const rangeDisplay = getCurrentRangeDisplay ? getCurrentRangeDisplay() : null;
 
   return (
@@ -49,14 +62,14 @@ const RefundSection = ({
             Track and analyze refund patterns
           </p>
         </div>
-        <RangeSelector
+        {/* <RangeSelector
           dataRange={dataRange}
           setDataRange={setDataRange}
           rangeOptions={rangeOptions}
           totalRecords={totalRecords}
           getCurrentRangeDisplay={getCurrentRangeDisplay}
           activeSection="refunds"
-        />
+        /> */}
       </div>
 
       {/* Data Range Info */}
@@ -175,7 +188,10 @@ const RefundSection = ({
           </div>
         </div>
       </div>
-      <ChatBot/>
+
+      {/* AI ChatBot with Insights */}
+      <ChatBot insights={refundInsights} section="refunds" />
+
       {/* AI-Powered Recommendations */}
       <AIRecommendations
         sectionType="refund"

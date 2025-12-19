@@ -1,3 +1,5 @@
+"use client";
+
 import { DollarSign, Package, TrendingUp, BarChart3 } from "lucide-react";
 import KpiCard from "../KpiCard";
 import RevenueChart from "../charts/RevenueChart";
@@ -14,6 +16,7 @@ import {
   analyzeProductDistribution,
 } from "@/utils/insightEngine";
 import ChatBot from "../ChatBot";
+import { generateOverviewInsights } from "@/utils/insightGenerator";
 
 const RevenueSection = ({
   metrics,
@@ -25,7 +28,10 @@ const RevenueSection = ({
   totalRecords,
   getCurrentRangeDisplay,
 }) => {
-  // Generate insights
+  // Generate insights for ChatBot
+  const revenueInsights = generateOverviewInsights(metrics);
+
+  // Generate insights for chart
   const revenueTrendInsight = analyzeRevenueTrends(revenueByMonth);
   const orderTrendInsight = analyzeOrderTrends(revenueByMonth);
   const revenueByProductInsight = analyzeRevenueByProduct(ordersByProduct);
@@ -48,14 +54,14 @@ const RevenueSection = ({
             Detailed revenue analysis and order metrics
           </p>
         </div>
-        <RangeSelector
+        {/* <RangeSelector
           dataRange={dataRange}
           setDataRange={setDataRange}
           rangeOptions={rangeOptions}
           totalRecords={totalRecords}
           getCurrentRangeDisplay={getCurrentRangeDisplay}
           activeSection="revenue"
-        />
+        /> */}
       </div>
 
       {/* Data Range Info */}
@@ -155,7 +161,10 @@ const RevenueSection = ({
           />
         </div>
       </div>
-      <ChatBot/>
+
+      {/* AI ChatBot with Insights */}
+      <ChatBot insights={revenueInsights} section="revenue" />
+
       {/* AI-Powered Recommendations */}
       <AIRecommendations
         sectionType="revenue"
