@@ -36,7 +36,7 @@ const preSortedPageviews = sortByDate(pageviewsRaw);
 const useDashboardData = (activeSection = "overview") => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dataRange, setDataRange] = useState({ start: 0, end: 1000 });
+  const [dataRange, setDataRange] = useState({ start: 0, end: 500000 });
 
   // Get total records for each dataset
   const totalRecords = useMemo(
@@ -74,7 +74,7 @@ const useDashboardData = (activeSection = "overview") => {
   const rangeOptions = useMemo(() => {
     const activeLength = getActiveDatasetLength();
     const ranges = [];
-    const chunkSize = 1000;
+    const chunkSize = 500000;
 
     if (activeLength === 0) return [];
 
@@ -285,7 +285,7 @@ const useDashboardData = (activeSection = "overview") => {
     setIsLoading(true);
     // Use requestAnimationFrame to ensure UI updates smoothly
     requestAnimationFrame(() => {
-      setDataRange({ start: 0, end: 1000 });
+      setDataRange({ start: 0, end: 500000 });
       setIsLoading(false);
     });
   }, [activeSection]);

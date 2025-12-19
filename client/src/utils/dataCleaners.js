@@ -118,8 +118,8 @@ export const cleanOrdersData = (rawData) => {
 export const cleanOrderItemsData = (rawData) => {
   if (!Array.isArray(rawData)) return [];
 
-  // Limit to 500 rows for safety
-  const limitedData = rawData.slice(0, 500);
+  // Limit to 500000 rows for safety
+  const limitedData = rawData.slice(0, 500000);
 
   return limitedData
     .filter((item) => item && typeof item === "object")
@@ -146,8 +146,8 @@ export const cleanOrderItemsData = (rawData) => {
 export const cleanRefundsData = (rawData) => {
   if (!Array.isArray(rawData)) return [];
 
-  // Limit to 500 rows for safety
-  const limitedData = rawData.slice(0, 500);
+  // Limit to 500000 rows for safety
+  const limitedData = rawData.slice(0, 500000);
 
   return limitedData
     .filter((item) => item && typeof item === "object")
@@ -172,8 +172,8 @@ export const cleanRefundsData = (rawData) => {
 export const cleanProductsData = (rawData) => {
   if (!Array.isArray(rawData)) return [];
 
-  // Limit to 500 rows for safety
-  const limitedData = rawData.slice(0, 500);
+  // Limit to 500000 rows for safety
+  const limitedData = rawData.slice(0, 500000);
 
   return limitedData
     .filter((item) => item && typeof item === "object")
@@ -196,8 +196,8 @@ export const cleanProductsData = (rawData) => {
 export const cleanSessionsData = (rawData) => {
   if (!Array.isArray(rawData)) return [];
 
-  // Limit to 500 rows for safety
-  const limitedData = rawData.slice(0, 500);
+  // Limit to 500000 rows for safety
+  const limitedData = rawData.slice(0, 500000);
 
   return limitedData
     .filter((item) => item && typeof item === "object")
@@ -226,8 +226,8 @@ export const cleanSessionsData = (rawData) => {
 export const cleanPageviewsData = (rawData) => {
   if (!Array.isArray(rawData)) return [];
 
-  // Limit to 500 rows for safety
-  const limitedData = rawData.slice(0, 500);
+  // Limit to 500000 rows for safety
+  const limitedData = rawData.slice(0, 500000);
 
   return limitedData
     .filter((item) => item && typeof item === "object")
@@ -251,8 +251,8 @@ export const cleanPageviewsData = (rawData) => {
 export const aggregateRevenueByMonth = (orders) => {
   const grouped = new Map();
 
-  // Take first 500 orders to prevent excessive processing
-  const limitedOrders = orders.slice(0, 500);
+  // Take first 500000 orders to prevent excessive processing
+  const limitedOrders = orders.slice(0, 500000);
 
   limitedOrders.forEach((order) => {
     const date = new Date(order.created_at);
@@ -275,8 +275,8 @@ export const aggregateRevenueByMonth = (orders) => {
 export const aggregateRevenueByYear = (orders) => {
   const grouped = new Map();
 
-  // Take first 500 orders to prevent excessive processing
-  const limitedOrders = orders.slice(0, 500);
+  // Take first 500000 orders to prevent excessive processing
+  const limitedOrders = orders.slice(0, 500000);
 
   limitedOrders.forEach((order) => {
     const date = new Date(order.created_at);
@@ -301,32 +301,32 @@ export const calculateRefundRate = (orders, refunds) => {
 
 // Calculate total revenue
 export const calculateTotalRevenue = (orders) => {
-  return orders.slice(0, 500).reduce((sum, order) => sum + order.price_usd, 0);
+  return orders.slice(0, 500000).reduce((sum, order) => sum + order.price_usd, 0);
 };
 
 // Calculate total refunds
 export const calculateTotalRefunds = (refunds) => {
   return refunds
-    .slice(0, 500)
+    .slice(0, 500000)
     .reduce((sum, refund) => sum + refund.refund_amount_usd, 0);
 };
 
 // Calculate AOV (Average Order Value)
 export const calculateAOV = (orders) => {
   if (orders.length === 0) return 0;
-  const limitedOrders = orders.slice(0, 500);
+  const limitedOrders = orders.slice(0, 500000);
   return calculateTotalRevenue(limitedOrders) / limitedOrders.length;
 };
 
 // Get refunds by product
 export const getRefundsByProduct = (refunds, orderItems, products) => {
   const refundOrderItemIds = new Set(
-    refunds.slice(0, 500).map((r) => r.order_item_id)
+    refunds.slice(0, 500000).map((r) => r.order_item_id)
   );
 
   const productRefunds = new Map();
 
-  orderItems.slice(0, 500).forEach((item) => {
+  orderItems.slice(0, 500000).forEach((item) => {
     if (refundOrderItemIds.has(item.order_item_id)) {
       const refund = refunds.find(
         (r) => r.order_item_id === item.order_item_id
@@ -357,7 +357,7 @@ export const getOrdersByProduct = (orderItems, products) => {
   const productOrders = new Map();
 
   orderItems
-    .slice(0, 500)
+    .slice(0, 500000)
     .filter((item) => item.is_primary_item)
     .forEach((item) => {
       const existing = productOrders.get(item.product_id) || {
